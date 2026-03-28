@@ -15,14 +15,14 @@
 For **critical** or **high** severity vulnerabilities (remote code execution, privilege escalation, authentication bypass, significant data exposure):
 
 1. **DO NOT** create a public GitHub issue
-2. Use [GitHub's private vulnerability reporting](https://github.com/apotropaios-project/apotropaios/security/advisories/new)
+2. Use [GitHub's private vulnerability reporting](https://github.com/Sandler73/Apotropaios-Firewall-Manager/security/advisories/new)
 3. Alternatively, email the maintainers with subject: `[SECURITY] Apotropaios vulnerability report`
 
 ### Medium / Low Severity
 
 For **medium** or **low** severity issues (input validation gaps, hardening suggestions, defense-in-depth improvements):
 
-1. Use the [Security Vulnerability issue template](https://github.com/apotropaios-project/apotropaios/issues/new?template=security_vulnerability.yml)
+1. Use the [Security Vulnerability issue template](https://github.com/Sandler73/Apotropaios-Firewall-Manager/issues/new?template=security_vulnerability.yml)
 
 ### What to Include
 
