@@ -258,7 +258,7 @@ _log_write() {
         _log_check_size
 
         # Atomic write to file descriptor
-        printf '%s\n' "${log_line}" >&"${APOTROPAIOS_LOG_FD}" 2>/dev/null || {
+        printf '%s\n' "${log_line}" 1>&"${APOTROPAIOS_LOG_FD}" 2>/dev/null || {
             printf '[CRITICAL] [logging] Write to log file failed, falling back to stderr\n' >&2
             printf '%s\n' "${log_line}" >&2
         }
@@ -311,7 +311,7 @@ _log_verify_handle() {
     [[ -z "${APOTROPAIOS_LOG_FD}" ]] && return 1
 
     # Check FD is open (test write with empty string)
-    if ! printf '' >&"${APOTROPAIOS_LOG_FD}" 2>/dev/null; then
+    if ! printf '' 1>&"${APOTROPAIOS_LOG_FD}" 2>/dev/null; then
         return 1
     fi
 
@@ -388,7 +388,8 @@ _log_rotate() {
     exec 3>&- 2>/dev/null || true
 
     # Rename with rotation suffix
-    local rotated_name="${APOTROPAIOS_LOG_FILE}.$(date -u '+%s' 2>/dev/null).rotated"
+    local rotated_name
+    rotated_name="${APOTROPAIOS_LOG_FILE}.$(date -u '+%s' 2>/dev/null).rotated"
     mv "${APOTROPAIOS_LOG_FILE}" "${rotated_name}" 2>/dev/null || true
 
     # Clean up old rotated files (keep MAX_LOG_FILES_RETAINED)
