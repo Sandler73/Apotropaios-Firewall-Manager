@@ -513,5 +513,5 @@ tests/
 
 1. Version tag verification (tag must match constants.sh)
 2. Full test suite + security gate
-3. Distribution build (`make dist`)
+3. Distribution build (`make release` — 3 packages + SHA-256 checksums)
 4. GitHub Release with auto-generated notes
