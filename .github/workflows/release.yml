@@ -76,8 +76,11 @@ jobs:
     steps:
       - uses: actions/checkout@v5
 
-      - name: Build distribution
-        run: make dist
+      - name: Build all release packages
+        run: make release
+
+      - name: Verify checksums
+        run: cd dist && sha256sum -c SHA256SUMS.txt
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
@@ -88,10 +91,35 @@ jobs:
           generate_release_notes: true
           prerelease: ${{ contains(github.ref_name, 'rc') || contains(github.ref_name, 'beta') || contains(github.ref_name, 'alpha') }}
           body: |
+            ## Release Assets
+
+            | Package | Description |
+            |:--------|:------------|
+            | `apotropaios-${{ github.ref_name }}.tar.gz` | Runtime — lib, conf, docs, community files |
+            | `apotropaios-${{ github.ref_name }}-full.tar.gz` | Developer — adds tests, CI workflows, tasks |
+            | `apotropaios-${{ github.ref_name }}-venv.tar.gz` | Portable venv — adds activate.sh and bin/ wrapper |
+            | `SHA256SUMS.txt` | SHA-256 checksums for all packages |
+
             ## Installation
+
+            **Standard install:**
             ```bash
             tar -xzf apotropaios-${{ github.ref_name }}.tar.gz
-            cd apotropaios-*
+            cd apotropaios-*/
             sudo make install
             ```
+
+            **Virtual environment (no system install):**
+            ```bash
+            tar -xzf apotropaios-${{ github.ref_name }}-venv.tar.gz
+            cd apotropaios-*-venv/
+            source activate.sh
+            sudo apotropaios detect
+            ```
+
+            **Verify download integrity:**
+            ```bash
+            sha256sum -c SHA256SUMS.txt
+            ```
+
             See [SETUP_GUIDE.md](docs/SETUP_GUIDE.md) for detailed instructions.
