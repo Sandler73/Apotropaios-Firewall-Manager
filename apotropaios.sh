@@ -22,7 +22,7 @@
 #               sudo ./apotropaios.sh add-rule --direction inbound --protocol tcp --dst-port 443 --action accept
 #               sudo ./apotropaios.sh import /path/to/rules.conf
 #               sudo ./apotropaios.sh backup pre-deployment
-# Version:      1.0.0
+# Version:      1.1.5
 # ==============================================================================
 
 set -euo pipefail
@@ -96,6 +96,10 @@ source "${APOTROPAIOS_BASE_DIR}/lib/install/installer.sh"
 # shellcheck source=lib/menu/menu_main.sh
 source "${APOTROPAIOS_BASE_DIR}/lib/menu/menu_main.sh"
 
+# Source help system
+# shellcheck source=lib/menu/help_system.sh
+source "${APOTROPAIOS_BASE_DIR}/lib/menu/help_system.sh"
+
 # ==============================================================================
 # CLI Argument Parsing State
 # ==============================================================================
@@ -103,19 +107,28 @@ _CLI_LOG_LEVEL=""
 _CLI_BACKEND=""
 _CLI_COMMAND=""
 _CLI_NON_INTERACTIVE=0
+_CLI_COMMAND_HELP=0
 declare -a _CLI_COMMAND_ARGS=()
 
 # ==============================================================================
 # _parse_args()
-# Description:  Parse command-line arguments and options.
+# Description:  Parse command-line arguments and options. Supports progressive
+#               help: --help before a command shows global help; --help after
+#               a command shows command-specific help.
 # Parameters:   $@ - All command-line arguments
 # ==============================================================================
 _parse_args() {
     while [[ $# -gt 0 ]]; do
         case "$1" in
             --help|-h)
-                _show_usage
-                exit "${E_SUCCESS}"
+                # If a command has already been captured, this is command-specific help
+                if [[ -n "${_CLI_COMMAND}" ]]; then
+                    _CLI_COMMAND_HELP=1
+                else
+                    # No command yet — show global help
+                    _show_usage
+                    exit "${E_SUCCESS}"
+                fi
                 ;;
             --version|-v)
                 printf '%s v%s\n' "${APOTROPAIOS_FULL_NAME}" "${APOTROPAIOS_VERSION}"
@@ -141,9 +154,15 @@ _parse_args() {
                 _CLI_NON_INTERACTIVE=1
                 ;;
             -*)
-                printf 'Error: Unknown option: %s\n' "$1" >&2
-                printf 'Run with --help for usage information\n' >&2
-                exit "${E_USAGE}"
+                # If a command is already set, pass unknown flags as command args
+                # (e.g., add-rule --direction inbound)
+                if [[ -n "${_CLI_COMMAND}" ]]; then
+                    _CLI_COMMAND_ARGS+=("$1")
+                else
+                    printf 'Error: Unknown option: %s\n' "$1" >&2
+                    printf 'Run with --help for usage information\n' >&2
+                    exit "${E_USAGE}"
+                fi
                 ;;
             *)
                 # First non-option is the command
@@ -160,51 +179,56 @@ _parse_args() {
 
 # ==============================================================================
 # _show_usage()
-# Description:  Display usage information.
+# Description:  Display top-level usage information (Tier 1 help).
+#               Points users to per-command help (Tier 2) for details.
 # ==============================================================================
 _show_usage() {
     util_print_banner
-    printf 'Usage: %s [OPTIONS] [COMMAND] [ARGS...]\n\n' "$(basename "$0")"
-    printf 'Options:\n'
-    printf '  -h, --help              Show this help message\n'
-    printf '  -v, --version           Show version\n'
-    printf '  --log-level LEVEL       Set log level (trace|debug|info|warning|error|critical)\n'
-    printf '  --backend NAME          Set firewall backend (firewalld|ipset|iptables|nftables|ufw)\n'
-    printf '  --non-interactive       Disable interactive prompts\n\n'
-    printf 'Commands:\n'
-    printf '  menu                    Start interactive menu (default)\n'
-    printf '  detect                  Detect OS and installed firewalls\n'
-    printf '  status                  Show firewall status\n'
-    printf '  block-all               Block all inbound and outbound traffic\n'
-    printf '  allow-all               Allow all inbound and outbound traffic\n'
-    printf '  list-rules              List all tracked rules\n'
-    printf '  system-rules            List all native system firewall rules\n'
-    printf '  add-rule [OPTS]         Add a firewall rule\n'
-    printf '  remove-rule ID          Remove a rule by UUID\n'
-    printf '  activate-rule ID        Re-activate a deactivated rule\n'
-    printf '  deactivate-rule ID      Deactivate a rule without removing\n'
-    printf '  import FILE             Import rules from configuration file\n'
-    printf '  export FILE             Export rules to configuration file\n'
-    printf '  backup [LABEL]          Create a configuration backup\n'
-    printf '  restore FILE            Restore from backup file\n'
-    printf '  install FW_NAME         Install a firewall package\n'
-    printf '  update FW_NAME          Update a firewall package\n\n'
-    printf 'Add-rule options:\n'
-    printf '  --direction DIR         inbound|outbound|forward (default: inbound)\n'
-    printf '  --protocol PROTO        tcp|udp|icmp|all (default: tcp)\n'
-    printf '  --src-ip IP             Source IP or CIDR\n'
-    printf '  --dst-ip IP             Destination IP or CIDR\n'
-    printf '  --src-port PORT         Source port or range\n'
-    printf '  --dst-port PORT         Destination port or range\n'
-    printf '  --action ACTION         accept|drop|reject (default: accept)\n'
-    printf '  --duration TYPE         permanent|temporary (default: permanent)\n'
-    printf '  --ttl SECONDS           TTL for temporary rules\n'
-    printf '  --description TEXT      Rule description\n\n'
-    printf 'Examples:\n'
-    printf '  sudo %s detect\n' "$(basename "$0")"
-    printf '  sudo %s --backend iptables add-rule --dst-port 443 --action accept\n' "$(basename "$0")"
-    printf '  sudo %s import /etc/apotropaios/rules.conf\n' "$(basename "$0")"
+    printf 'Usage: %s [OPTIONS] [COMMAND] [ARGS...]\n' "$(basename "$0")"
+    printf '       %s COMMAND --help     %b(detailed command help)%b\n\n' "$(basename "$0")" "${COLOR_DIM}" "${COLOR_RESET}"
+
+    printf '%bGlobal Options:%b\n' "${COLOR_BOLD}" "${COLOR_RESET}"
+    printf '  %-26s %s\n' "-h, --help" "Show this help (or COMMAND --help for details)"
+    printf '  %-26s %s\n' "-v, --version" "Show version and exit"
+    printf '  %-26s %s\n' "--log-level LEVEL" "Set verbosity: trace|debug|info|warning|error|critical"
+    printf '  %-26s %s\n' "--backend NAME" "Set firewall: firewalld|ipset|iptables|nftables|ufw"
+    printf '  %-26s %s\n' "--non-interactive" "Disable interactive prompts"
+
+    printf '\n%bCommands:%b\n' "${COLOR_BOLD}" "${COLOR_RESET}"
+    printf '  %b%-22s%b %s\n' "${COLOR_CYAN}" "menu" "${COLOR_RESET}" "Launch interactive menu (default if no command given)"
+    printf '  %b%-22s%b %s\n' "${COLOR_CYAN}" "detect" "${COLOR_RESET}" "Detect OS and installed firewalls"
+    printf '  %b%-22s%b %s\n' "${COLOR_CYAN}" "status" "${COLOR_RESET}" "Show active firewall backend status"
+    printf '\n'
+    printf '  %b%-22s%b %s\n' "${COLOR_CYAN}" "add-rule [OPTS]" "${COLOR_RESET}" "Create and apply a firewall rule"
+    printf '  %b%-22s%b %s\n' "${COLOR_CYAN}" "remove-rule ID" "${COLOR_RESET}" "Remove a rule by its UUID"
+    printf '  %b%-22s%b %s\n' "${COLOR_CYAN}" "activate-rule ID" "${COLOR_RESET}" "Re-activate a deactivated rule"
+    printf '  %b%-22s%b %s\n' "${COLOR_CYAN}" "deactivate-rule ID" "${COLOR_RESET}" "Deactivate a rule (keep in index)"
+    printf '  %b%-22s%b %s\n' "${COLOR_CYAN}" "list-rules" "${COLOR_RESET}" "List all Apotropaios-tracked rules"
+    printf '  %b%-22s%b %s\n' "${COLOR_CYAN}" "system-rules" "${COLOR_RESET}" "Audit all native system firewall rules"
+    printf '\n'
+    printf '  %b%-22s%b %s\n' "${COLOR_CYAN}" "block-all" "${COLOR_RESET}" "Block ALL inbound and outbound traffic"
+    printf '  %b%-22s%b %s\n' "${COLOR_CYAN}" "allow-all" "${COLOR_RESET}" "Allow ALL traffic (remove restrictions)"
+    printf '\n'
+    printf '  %b%-22s%b %s\n' "${COLOR_CYAN}" "import FILE" "${COLOR_RESET}" "Import rules from configuration file"
+    printf '  %b%-22s%b %s\n' "${COLOR_CYAN}" "export FILE" "${COLOR_RESET}" "Export rules to configuration file"
+    printf '  %b%-22s%b %s\n' "${COLOR_CYAN}" "backup [LABEL]" "${COLOR_RESET}" "Create a configuration backup"
+    printf '  %b%-22s%b %s\n' "${COLOR_CYAN}" "restore FILE" "${COLOR_RESET}" "Restore from backup archive"
+    printf '  %b%-22s%b %s\n' "${COLOR_CYAN}" "install FW_NAME" "${COLOR_RESET}" "Install a firewall package"
+    printf '  %b%-22s%b %s\n' "${COLOR_CYAN}" "update FW_NAME" "${COLOR_RESET}" "Update a firewall package"
+
+    printf '\n%bQuick Examples:%b\n' "${COLOR_BOLD}" "${COLOR_RESET}"
+    printf '  sudo %s                                       # Launch menu\n' "$(basename "$0")"
+    printf '  sudo %s detect                                # Scan system\n' "$(basename "$0")"
+    printf '  sudo %s add-rule --help                       # Full add-rule help\n' "$(basename "$0")"
+    printf '  sudo %s add-rule --dst-port 443 --action accept\n' "$(basename "$0")"
     printf '  sudo %s backup pre-deploy\n' "$(basename "$0")"
+
+    printf '\n%bDetailed Help:%b\n' "${COLOR_BOLD}" "${COLOR_RESET}"
+    printf '  Every command supports --help for detailed usage, options, and examples:\n'
+    printf '    %s add-rule --help      Full rule option reference\n' "$(basename "$0")"
+    printf '    %s backup --help        Backup contents and retention info\n' "$(basename "$0")"
+    printf '    %s import --help        Configuration file format reference\n' "$(basename "$0")"
+    printf '\n'
 }
 
 # ==============================================================================
@@ -287,9 +311,15 @@ _initialize() {
 
 # ==============================================================================
 # _execute_command()
-# Description:  Execute the CLI command.
+# Description:  Execute the CLI command. Checks for per-command help first.
 # ==============================================================================
 _execute_command() {
+    # Tier 2: If --help was passed after a command, show command-specific help
+    if [[ "${_CLI_COMMAND_HELP}" -eq 1 ]] && [[ -n "${_CLI_COMMAND}" ]]; then
+        help_dispatch "${_CLI_COMMAND}"
+        return $?
+    fi
+
     case "${_CLI_COMMAND}" in
         ""|menu)
             menu_main
@@ -381,6 +411,7 @@ _cli_add_rule() {
 
     while [[ $# -gt 0 ]]; do
         case "$1" in
+            --help|-h)       help_cmd_add_rule; exit "${E_SUCCESS}" ;;
             --direction)     shift; rule_params[direction]="$1" ;;
             --protocol)      shift; rule_params[protocol]="$1" ;;
             --src-ip)        shift; rule_params[src_ip]="$1" ;;
@@ -395,6 +426,11 @@ _cli_add_rule() {
             --interface)     shift; rule_params[interface]="$1" ;;
             --chain)         shift; rule_params[chain]="$1" ;;
             --table)         shift; rule_params[table]="$1" ;;
+            --conn-state|--state)  shift; rule_params[conn_state]="$1" ;;
+            --log-prefix)    shift; rule_params[log_prefix]="$1" ;;
+            --log-level)     shift; rule_params[log_level]="$1" ;;
+            --limit)         shift; rule_params[limit]="$1" ;;
+            --limit-burst)   shift; rule_params[limit_burst]="$1" ;;
             *) printf 'Warning: Unknown add-rule option: %s\n' "$1" >&2 ;;
         esac
         shift
@@ -415,6 +451,14 @@ _cli_add_rule() {
 # ==============================================================================
 main() {
     _parse_args "$@"
+
+    # Per-command help (Tier 2) does not require full initialization
+    # — the help functions only use constants and printf, no firewall ops
+    if [[ "${_CLI_COMMAND_HELP}" -eq 1 ]] && [[ -n "${_CLI_COMMAND}" ]]; then
+        help_dispatch "${_CLI_COMMAND}"
+        exit $?
+    fi
+
     _initialize
     _execute_command
 }
