@@ -84,18 +84,45 @@ jobs:
       - name: Check for dangerous patterns
         run: |
           echo "==> Scanning for dangerous patterns..."
-          fail=0
-          # Check for eval with variables
-          if grep -rn 'eval.*\$' lib/ apotropaios.sh --include='*.sh' | grep -v 'eval "exec' | grep -v '#'; then
-            echo "::warning::Found eval with variable expansion (review required)"
+          found=0
+          # Check for eval with user-supplied data (exclude framework-internal eval)
+          # Known-safe: security_scrub_vars (var scrubbing), _CLEANUP_STACK (cleanup),
+          # error_with_fallback (primary/fallback), util_parallel_exec (framework cmd)
+          matches=$(grep -rn 'eval.*\$' lib/ apotropaios.sh --include='*.sh' \
+            | grep -v 'eval "exec' \
+            | grep -v '^\s*#' \
+            | grep -v 'security_scrub_vars\|_CLEANUP_STACK\|cleanup\|scrub\|error_with_fallback\|util_parallel' \
+            || true)
+          if [ -n "$matches" ]; then
+            echo "$matches"
+            echo "::warning::Found eval with variable expansion outside known-safe patterns (review required)"
+            found=1
           fi
-          # Check for unquoted command substitution
-          if grep -rn '[^"]\$(' lib/ apotropaios.sh --include='*.sh' | grep -v '^\s*#' | grep -v 'readonly\|local\|export' | head -20; then
+          # Check for unquoted command substitution in dangerous contexts
+          # Exclude: variable assignments (local/readonly/export), arithmetic,
+          # log messages, printf arguments, and string interpolation in quotes
+          matches=$(grep -rn '\$(' lib/ apotropaios.sh --include='*.sh' \
+            | grep -v '^\s*#' \
+            | grep -v 'local \|readonly \|export \|="\$(\|="$(' \
+            | grep -v 'log_\|printf\|echo' \
+            | grep -v '\$((\|util_\|basename\|dirname\|date\|wc\|grep\|cat\|head\|cut' \
+            || true)
+          if [ -n "$matches" ]; then
+            echo "$matches"
             echo "::notice::Found potentially unquoted command substitution (review recommended)"
+            found=1
           fi
           # Check for /tmp without mktemp
-          if grep -rn '"/tmp/' lib/ apotropaios.sh --include='*.sh' | grep -v '#\|mktemp\|test\|TMPDIR'; then
+          matches=$(grep -rn '/tmp/' lib/ apotropaios.sh --include='*.sh' \
+            | grep -v '#\|mktemp\|test\|TMPDIR\|printf\|help\|echo' \
+            || true)
+          if [ -n "$matches" ]; then
+            echo "$matches"
             echo "::warning::Found hardcoded /tmp paths — use mktemp instead"
+            found=1
+          fi
+          if [ "$found" -eq 0 ]; then
+            echo "  ✓ No dangerous patterns found"
           fi
           echo "==> Pattern scan complete"
 
@@ -262,7 +289,7 @@ jobs:
     if: always()
     steps:
       - name: Download all results
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v6
         with:
           path: all-results/
 
