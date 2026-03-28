@@ -634,9 +634,9 @@ The framework provides three levels of configuration protection:
 3. **Immutable snapshots**: `chattr +i` protected files that cannot be modified or deleted without explicit unlock
 
 ```bash
-sudo ./apotropaios.sh backup pre-deploy     # Create labeled backup
-sudo ./apotropaios.sh backup                # Create timestamped backup
-sudo ./apotropaios.sh restore               # Restore from latest
+sudo ./apotropaios.sh backup pre-deploy        # Create labeled backup
+sudo ./apotropaios.sh backup                   # Create timestamped backup
+sudo ./apotropaios.sh restore                  # Restore from latest
 sudo ./apotropaios.sh restore specific.tar.gz  # Restore from specific backup
 ```
 
@@ -854,8 +854,8 @@ sudo ./apotropaios.sh install ufw         # Simplest option
 Check directory permissions and disk space:
 
 ```bash
-ls -la data/logs/                       # Check permissions
-df -h                                    # Check disk space
+ls -la data/logs/                               # Check permissions
+df -h                                           # Check disk space
 sudo ./apotropaios.sh --log-level trace detect  # Maximum diagnostic detail
 ```
 
