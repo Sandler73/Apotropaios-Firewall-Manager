@@ -28,6 +28,22 @@ All notable changes to the Apotropaios Firewall Manager are documented here.
 ### Regression Fix
 - **BUG-010:** Fixed critical regression from H3 audit fix — `sanitize_input()` whitelist `tr -cd` class had misplaced hyphen (`/-+`) causing GNU `tr` to fail and return empty string on ALL inputs. Every menu selection returned "Invalid option." Fix: hyphen moved to last position in tr class (`%-`). Removed `\n\t` from single-quoted string (were literal backslash+n, not actual newline/tab).
 
+### ShellCheck Compliance
+- **SC2015:** Replaced 4 `A && B || C` patterns with proper if/then/else (backup.sh, firewalld.sh, menu_main.sh)
+- **SC2261:** Fixed competing stderr redirections in logging.sh — `>&"${FD}"` → `1>&"${FD}"`
+- **SC2155:** Separated `local` declaration from command substitution in logging.sh
+- **SC1125:** Fixed invalid shellcheck directive (em dash broke key=value parsing) in nftables.sh
+- **SC2120:** Added disable directive for intentionally optional parameter in security.sh
+- **SC2183:** Added missing printf color arguments in menu_main.sh
+- **SC1091:** Added global disable for cross-file source resolution in .shellcheckrc
+
+### Packaging Expansion
+- **`make dist-venv`:** New target generates portable virtual environment package with `activate.sh` (PATH management, PS1 prefix, double-activation guard, clean deactivation) and `bin/apotropaios` wrapper
+- **`make release`:** New unified target builds all 3 packages (runtime, full, venv) with single SHA256SUMS.txt covering all assets
+- **`dist-full` fix:** Now generates its own SHA256SUMS.txt (was using `>>` append which failed standalone)
+- **Makefile:** 40 targets (was 38)
+- **release.yml:** Updated to use `make release`, attaches all 3 packages, adds checksum verification step
+
 ## [1.1.4] - 2026-03-25
 
 ### Bug Fixes
