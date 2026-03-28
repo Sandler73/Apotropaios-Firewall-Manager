@@ -1,13 +1,67 @@
 # ==============================================================================
-# ShellCheck Configuration for Apotropaios
+# ShellCheck Configuration for Apotropaios - Firewall Manager
+# Description: Project-wide ShellCheck directives with documented rationale.
+#              Per-file overrides can be added with inline # shellcheck directives.
+# Reference:   https://www.shellcheck.net/wiki/
+# Version:     1.1.5
 # ==============================================================================
 
-# Shell dialect
+# Shell dialect — all modules target bash 4.0+
 shell=bash
 
-# Disable SC2034: Variables used by sourced scripts appear "unused"
+# Source path for cross-file source resolution
+# Allows ShellCheck to follow source statements between modules
+source-path=SCRIPTDIR
+source-path=SCRIPTDIR/lib/core
+source-path=SCRIPTDIR/lib/detection
+source-path=SCRIPTDIR/lib/firewall
+source-path=SCRIPTDIR/lib/rules
+source-path=SCRIPTDIR/lib/backup
+source-path=SCRIPTDIR/lib/install
+source-path=SCRIPTDIR/lib/menu
+
+# ==============================================================================
+# Global Suppressions (apply to all files)
+# ==============================================================================
+
+# SC2034: Variable appears unused — variables are used by sourced scripts
+# Rationale: Module variables (APOTROPAIOS_*, OS_DETECTED_*, FW_DETECTED_*,
+# _RULE_*, _CLEANUP_*) are set in one module and read in another. ShellCheck
+# cannot trace cross-file variable usage through source statements.
 disable=SC2034
 
-# Disable SC2155: Declare and assign separately — handled intentionally in some patterns
-# (We follow this rule in most places but suppress for readonly declarations)
-# disable=SC2155
+# SC2154: Variable is referenced but not assigned
+# Rationale: Same as SC2034 — variables assigned in sourced modules appear
+# unassigned to ShellCheck when analyzing a single file. All variables are
+# assigned before use at runtime; the source order guarantees this.
+disable=SC2154
+
+# SC1091: Not following sourced file (cannot resolve path)
+# Rationale: Source statements use runtime variable ${APOTROPAIOS_BASE_DIR}
+# which ShellCheck cannot resolve at static analysis time. Inline
+# "# shellcheck source=" directives are present but depend on source-path
+# resolution from the correct working directory. In CI environments where
+# the .shellcheckrc may not be found or ShellCheck runs from a different cwd,
+# these paths may not resolve. All source targets are verified at runtime.
+disable=SC1091
+
+# ==============================================================================
+# Per-File Notes (use inline directives for these)
+# ==============================================================================
+#
+# lib/firewall/nftables.sh line 196: nft ${nft_cmd}
+#   SC2086 (word splitting) is INTENTIONAL here — nft requires the command
+#   string to be word-split into separate arguments. All components of nft_cmd
+#   are individually validated before concatenation. The nft -f file fallback
+#   was removed in v1.1.5 (C4 audit fix) to eliminate injection risk.
+#   Use inline: # shellcheck disable=SC2086
+#
+# lib/core/errors.sh line 125: eval "${func}"
+#   SC2294 (eval) is INTENTIONAL — cleanup functions are registered by the
+#   framework itself (never user input). The eval executes function names
+#   from _CLEANUP_STACK which is only populated via error_register_cleanup().
+#
+# lib/core/security.sh lines 167-168: eval "${var_name}='...'"
+#   SC2294 (eval) is INTENTIONAL — variable scrubbing requires dynamic
+#   variable name assignment. var_name comes from _SENSITIVE_VARS which is
+#   only populated via security_register_sensitive_var() (framework-internal).
