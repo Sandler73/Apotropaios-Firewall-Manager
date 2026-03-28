@@ -22,7 +22,7 @@
 
 ```bash
 # Clone the repository
-git clone https://github.com/apotropaios-project/apotropaios.git
+git clone https://github.com/Sandler73/Apotropaios-Firewall-Manager.git
 cd apotropaios
 
 # Automated setup (installs BATS, checks ShellCheck)
@@ -365,6 +365,8 @@ make security-scan     # Static pattern analysis (6 checks)
 make lint              # Syntax check + ShellCheck
 make dist              # Build runtime distribution tarball
 make dist-full         # Build full distribution (includes tests, CI, tasks)
+make dist-venv         # Build venv package (portable, activate/deactivate)
+make release           # Build ALL packages + unified SHA256SUMS.txt
 make install           # Install to /opt/apotropaios (root required)
 make uninstall         # Remove installation (preserves data)
 make verify            # Check installed version
@@ -396,7 +398,7 @@ make clean-all         # Deep clean including all data
 
 1. Version tag verification (tag must match `APOTROPAIOS_VERSION` in constants.sh)
 2. Full test suite + security gate
-3. `make dist` — build distribution tarball with SHA-256
+3. `make release` — build all distribution packages (runtime, full, venv) with unified SHA-256 checksums
 4. GitHub Release with auto-generated notes and artifacts
 
 ### Key CI Design Decisions
