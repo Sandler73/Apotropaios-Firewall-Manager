@@ -1,6 +1,6 @@
 # Apotropaios — Setup & Installation Guide
 
-Comprehensive guide for installing, configuring, and verifying Apotropaios across all supported platforms.
+A comprehensive guide for installing, configuring, and verifying Apotropaios across all supported platforms.
 
 ## Table of Contents
 
