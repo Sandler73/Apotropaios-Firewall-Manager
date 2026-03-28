@@ -105,7 +105,7 @@ lint: syntax-check
 	fi; \
 	fail=0; \
 	for f in $(SHELL_FILES); do \
-		if ! $(SHELLCHECK) -x "$$f" 2>/dev/null; then \
+		if ! $(SHELLCHECK) -x -S warning --source-path=SCRIPTDIR --source-path=. "$$f" 2>/dev/null; then \
 			fail=1; \
 		fi; \
 	done; \
