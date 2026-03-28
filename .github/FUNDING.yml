@@ -1,0 +1,158 @@
+# ==============================================================================
+# Apotropaios - Firewall Manager
+# Funding Configuration (FUNDING.yml)
+# ==============================================================================
+#
+# Description:  Defines funding and sponsorship platforms for the project.
+#               GitHub displays a "Sponsor" button on the repository page
+#               linking to these configured platforms for up to 4 links in
+#		the sidebar. Each platform key maps to either a username 
+#		or a full URL.
+#
+# Configuration & Usage: Uncomment and populate the platforms you wish and 
+#			 wish to enable. Remove or leave commented any 
+#			 platforms you don't use. GitHub ignores commented
+#              		 and empty entries. GitHub supports the following
+#			 platform keys:
+#
+#   github           - GitHub Sponsors username(s) — array of up to 4 usernames
+#   patreon          - Patreon username
+#   open_collective  - Open Collective project name
+#   ko_fi            - Ko-fi username
+#   tidelift         - Tidelift package identifier (format: platform/package-name)
+#   community_bridge - Community Bridge project name
+#   liberapay        - Liberapay username
+#   issuehunt        - IssueHunt username
+#   polar            - Polar organization name
+#   buy_me_a_coffee  - Buy Me a Coffee username
+#   thanks_dev       - Thanks.dev project ID
+#   custom           - Array of up to 4 custom sponsorship URLs
+#
+# Notes:
+#   - This file must be at .github/FUNDING.yml (case-sensitive)
+#   - Only uncommented, non-empty values are displayed
+#   - Changes take effect immediately after push to default branch
+#   - GitHub Sponsors is the recommended primary platform (lowest fees, native integration)
+#         - GitHub Sponsors requires separate enrollment at:
+#           https://github.com/sponsors
+#   - Custom URLs can point to PayPal, Stripe, project wiki, or any donation page
+#   - This file must be in .github/FUNDING.yml at the repository root
+#   - For organization-wide funding, place in the .github repository
+#
+# Reference:    https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/displaying-a-sponsor-button-in-your-repository
+# ==============================================================================
+
+# ---------------------------------------------------------------------------
+# GitHub Sponsors (recommended primary — native integration, lowest fees)
+# Your GitHub username or organization. Enables the native GitHub Sponsors
+# integration with tiered sponsorship, one-time donations, and recurring
+# monthly support directly on GitHub.
+#
+# Accepts an array of up to 4 GitHub usernames or organization names
+# Enroll: https://github.com/sponsors
+# ---------------------------------------------------------------------------
+github: [apotropaios-project]
+
+# ---------------------------------------------------------------------------
+# Recurring Donation Platforms
+# ---------------------------------------------------------------------------
+
+# ---------------------------------------------------------------------------
+# Patreon
+# Membership-based recurring support with tiered rewards.
+# https://www.patreon.com
+# ---------------------------------------------------------------------------
+# patreon: apotropaios
+
+# ---------------------------------------------------------------------------
+# Open Collective
+# For projects with transparent budgets and community-governed funds.
+# Supports one-time and recurring contributions with public expense tracking.
+# https://opencollective.com
+# ---------------------------------------------------------------------------
+# open_collective: apotropaios
+
+# ---------------------------------------------------------------------------
+# Liberapay
+# Recurrent donations platform focused on open source. Privacy-friendly,
+# no platform fees (funded by its own donations).
+# https://liberapay.com
+# ---------------------------------------------------------------------------
+# liberapay: apotropaios
+
+# ---------------------------------------------------------------------------
+# Polar
+# Fund specific issues, subscribe to projects, and manage open-source
+# funding with integrated billing and payout.
+# https://polar.sh
+# ---------------------------------------------------------------------------
+# polar: apotropaios-project
+
+# ---------------------------------------------------------------------------
+# One-Time Donation Platforms
+# ---------------------------------------------------------------------------
+
+# ---------------------------------------------------------------------------
+# Ko-fi
+# Simple one-time "buy me a coffee" donations and optional monthly support.
+# No platform fees on donations. Supports PayPal and Stripe.
+# https://ko-fi.com
+# ---------------------------------------------------------------------------
+# ko_fi: apotropaios
+
+# ---------------------------------------------------------------------------
+# Buy Me a Coffee
+# One-time and recurring "coffee" donations with optional membership tiers.
+# https://www.buymeacoffee.com
+# ---------------------------------------------------------------------------
+# buy_me_a_coffee: apotropaios
+
+# ---------------------------------------------------------------------------
+# Enterprise / Commercial Support
+# ---------------------------------------------------------------------------
+
+# ---------------------------------------------------------------------------
+# Tidelift
+# Enterprise-focused: companies pay for open source maintenance guarantees.
+# Maintainers earn income for security, licensing, and maintenance commitments.
+# https://tidelift.com
+# ---------------------------------------------------------------------------
+# (format: platform/package-name)
+# tidelift: npm/apotropaios
+
+# ---------------------------------------------------------------------------
+# IssueHunt
+# Bounty-based funding where sponsors fund specific issues and contributors
+# earn by resolving them. Useful for feature-request-driven projects.
+# https://issuehunt.io
+# ---------------------------------------------------------------------------
+# issuehunt: apotropaios-project
+
+# ---------------------------------------------------------------------------
+# Community Bridge (Linux Foundation)
+# For Linux Foundation-affiliated projects. Provides mentorship program
+# integration and corporate-friendly donation structure.
+# https://communitybridge.org
+# ---------------------------------------------------------------------------
+# community_bridge: apotropaios
+
+# ---------------------------------------------------------------------------
+# Thanks.dev — Automated dependency-based funding
+# ---------------------------------------------------------------------------
+# thanks_dev: apotropaios
+
+# ---------------------------------------------------------------------------
+# Custom Funding Links (up to 4 URLs)
+# Up to 4 custom funding links. Use for platforms not listed above, personal
+# donation pages, or project-specific crowdfunding campaigns.
+# ---------------------------------------------------------------------------
+# custom:
+#   - Project website donation page - https://github.com/apotropaios-project/apotropaios/wiki/Supporting-the-Project || https://apotropaios-project.github.io/sponsor
+#   - Private/customized donation page - https://your-project-site.com/donate
+# Examples:
+#   - PayPal.me donation link - https://paypal.me/apotropaios
+#   - Stripe payment link - https://donate.stripe.com/apotropaios
+#   - Crowdfunding campaign (GoFundMe, Kickstarter, etc.)
+# ---------------------------------------------------------------------------
+
+
