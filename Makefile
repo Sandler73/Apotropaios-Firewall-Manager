@@ -24,7 +24,7 @@ SHELL := /bin/bash
         test-security test-errors test-rule-engine test-backup \
         test-lifecycle test-import-export test-cli test-help-system \
         test-sec-injection \
-        clean dist dist-full install uninstall verify \
+        clean dist dist-full dist-venv release install uninstall verify \
         check-deps dev-setup info metrics \
         help
 
@@ -372,47 +372,236 @@ _check-bats:
 # ╚════════════════════════════════════════════════════════════════════════════╝
 
 # ==============================================================================
-# Distribution Package — runtime files only
+# Common packaging helper — creates the base directory structure
+# Usage: $(call stage_base,DEST_DIR)
+# ==============================================================================
+define stage_base
+	@mkdir -p $(1)/lib $(1)/conf $(1)/docs
+	@cp -r lib/core lib/detection lib/firewall lib/rules lib/backup lib/install lib/menu $(1)/lib/
+	@cp -r conf/apotropaios.conf $(1)/conf/ 2>/dev/null || true
+	@cp -r docs/*.md docs/wiki $(1)/docs/ 2>/dev/null || true
+	@cp apotropaios.sh Makefile .shellcheckrc .gitignore $(1)/
+	@cp $(COMMUNITY_FILES) $(1)/ 2>/dev/null || true
+	@mkdir -p $(1)/data/logs $(1)/data/rules $(1)/data/backups
+	@touch $(1)/data/logs/.gitkeep $(1)/data/rules/.gitkeep $(1)/data/backups/.gitkeep
+endef
+
+# ==============================================================================
+# dist — Runtime distribution (end-user package)
+# Contents: lib/, conf/, docs/, apotropaios.sh, Makefile, community files
+# Does NOT include: tests/, .github/, tasks/
 # ==============================================================================
 dist: clean
-	@echo "==> Building distribution package v$(VERSION)..."
+	@echo "==> Building runtime distribution v$(VERSION)..."
 	@mkdir -p $(STAGING_DIR)/$(PROJECT)-$(VERSION)
-	@cp -r lib conf apotropaios.sh Makefile .shellcheckrc .gitignore \
-		$(COMMUNITY_FILES) \
-		$(STAGING_DIR)/$(PROJECT)-$(VERSION)/ 2>/dev/null || true
-	@cp -r docs $(STAGING_DIR)/$(PROJECT)-$(VERSION)/ 2>/dev/null || true
-	@mkdir -p $(STAGING_DIR)/$(PROJECT)-$(VERSION)/data/logs
-	@mkdir -p $(STAGING_DIR)/$(PROJECT)-$(VERSION)/data/rules
-	@mkdir -p $(STAGING_DIR)/$(PROJECT)-$(VERSION)/data/backups
-	@touch $(STAGING_DIR)/$(PROJECT)-$(VERSION)/data/logs/.gitkeep
-	@touch $(STAGING_DIR)/$(PROJECT)-$(VERSION)/data/rules/.gitkeep
-	@touch $(STAGING_DIR)/$(PROJECT)-$(VERSION)/data/backups/.gitkeep
+	$(call stage_base,$(STAGING_DIR)/$(PROJECT)-$(VERSION))
 	@cd $(STAGING_DIR) && $(TAR) -czf ../$(PROJECT)-$(VERSION).tar.gz $(PROJECT)-$(VERSION)
 	@cd $(DIST_DIR) && $(SHA256) $(PROJECT)-$(VERSION).tar.gz > SHA256SUMS.txt 2>/dev/null || true
 	@rm -rf $(STAGING_DIR)
-	@echo "==> Package: $(DIST_DIR)/$(PROJECT)-$(VERSION).tar.gz"
-	@echo "==> Checksum: $(DIST_DIR)/SHA256SUMS.txt"
+	@echo "  Package:  $(DIST_DIR)/$(PROJECT)-$(VERSION).tar.gz"
+	@echo "  Checksum: $(DIST_DIR)/SHA256SUMS.txt"
+	@echo "==> dist complete"
 
 # ==============================================================================
-# Full Distribution — includes tests, CI, templates, tasks
+# dist-full — Full distribution (developer/contributor package)
+# Contents: Everything in dist PLUS tests/, .github/, tasks/
 # ==============================================================================
 dist-full: clean
-	@echo "==> Building full distribution package v$(VERSION)..."
+	@echo "==> Building full distribution v$(VERSION)..."
 	@mkdir -p $(STAGING_DIR)/$(PROJECT)-$(VERSION)-full
-	@cp -r lib conf docs tests .github tasks \
-		apotropaios.sh Makefile .shellcheckrc .gitignore \
-		$(COMMUNITY_FILES) \
-		$(STAGING_DIR)/$(PROJECT)-$(VERSION)-full/ 2>/dev/null || true
-	@mkdir -p $(STAGING_DIR)/$(PROJECT)-$(VERSION)-full/data/logs
-	@mkdir -p $(STAGING_DIR)/$(PROJECT)-$(VERSION)-full/data/rules
-	@mkdir -p $(STAGING_DIR)/$(PROJECT)-$(VERSION)-full/data/backups
-	@touch $(STAGING_DIR)/$(PROJECT)-$(VERSION)-full/data/logs/.gitkeep
-	@touch $(STAGING_DIR)/$(PROJECT)-$(VERSION)-full/data/rules/.gitkeep
-	@touch $(STAGING_DIR)/$(PROJECT)-$(VERSION)-full/data/backups/.gitkeep
+	$(call stage_base,$(STAGING_DIR)/$(PROJECT)-$(VERSION)-full)
+	@cp -r tests $(STAGING_DIR)/$(PROJECT)-$(VERSION)-full/ 2>/dev/null || true
+	@cp -r .github $(STAGING_DIR)/$(PROJECT)-$(VERSION)-full/ 2>/dev/null || true
+	@cp -r tasks $(STAGING_DIR)/$(PROJECT)-$(VERSION)-full/ 2>/dev/null || true
 	@cd $(STAGING_DIR) && $(TAR) -czf ../$(PROJECT)-$(VERSION)-full.tar.gz $(PROJECT)-$(VERSION)-full
-	@cd $(DIST_DIR) && $(SHA256) $(PROJECT)-$(VERSION)-full.tar.gz >> SHA256SUMS.txt 2>/dev/null || true
+	@cd $(DIST_DIR) && $(SHA256) $(PROJECT)-$(VERSION)-full.tar.gz > SHA256SUMS.txt 2>/dev/null || true
 	@rm -rf $(STAGING_DIR)
-	@echo "==> Package: $(DIST_DIR)/$(PROJECT)-$(VERSION)-full.tar.gz"
+	@echo "  Package:  $(DIST_DIR)/$(PROJECT)-$(VERSION)-full.tar.gz"
+	@echo "  Checksum: $(DIST_DIR)/SHA256SUMS.txt"
+	@echo "==> dist-full complete"
+
+# ==============================================================================
+# dist-venv — Virtual environment package (self-contained, isolated)
+# Contents: Everything in dist PLUS activate/deactivate scripts, bin/ wrapper,
+#           and an isolated directory structure that does not require system
+#           installation. Source activate.sh to add to PATH, deactivate to remove.
+# ==============================================================================
+dist-venv: clean
+	@echo "==> Building venv distribution v$(VERSION)..."
+	@mkdir -p $(STAGING_DIR)/$(PROJECT)-$(VERSION)-venv
+	$(call stage_base,$(STAGING_DIR)/$(PROJECT)-$(VERSION)-venv)
+	@# --- Create bin/ wrapper script ---
+	@mkdir -p $(STAGING_DIR)/$(PROJECT)-$(VERSION)-venv/bin
+	@printf '#!/usr/bin/env bash\n' \
+		> $(STAGING_DIR)/$(PROJECT)-$(VERSION)-venv/bin/apotropaios
+	@printf '# Wrapper script for venv-mode execution\n' \
+		>> $(STAGING_DIR)/$(PROJECT)-$(VERSION)-venv/bin/apotropaios
+	@printf '# Auto-generated by: make dist-venv\n' \
+		>> $(STAGING_DIR)/$(PROJECT)-$(VERSION)-venv/bin/apotropaios
+	@printf 'VENV_DIR="$$(cd "$$(dirname "$${BASH_SOURCE[0]}")/.." && pwd)"\n' \
+		>> $(STAGING_DIR)/$(PROJECT)-$(VERSION)-venv/bin/apotropaios
+	@printf 'exec "$${VENV_DIR}/apotropaios.sh" "$$@"\n' \
+		>> $(STAGING_DIR)/$(PROJECT)-$(VERSION)-venv/bin/apotropaios
+	@chmod 755 $(STAGING_DIR)/$(PROJECT)-$(VERSION)-venv/bin/apotropaios
+	@# --- Create activate.sh ---
+	@printf '#!/usr/bin/env bash\n' \
+		> $(STAGING_DIR)/$(PROJECT)-$(VERSION)-venv/activate.sh
+	@printf '# Apotropaios Virtual Environment Activation Script\n' \
+		>> $(STAGING_DIR)/$(PROJECT)-$(VERSION)-venv/activate.sh
+	@printf '# Usage: source activate.sh\n' \
+		>> $(STAGING_DIR)/$(PROJECT)-$(VERSION)-venv/activate.sh
+	@printf '# Deactivate: apotropaios_deactivate\n' \
+		>> $(STAGING_DIR)/$(PROJECT)-$(VERSION)-venv/activate.sh
+	@printf '#\n' \
+		>> $(STAGING_DIR)/$(PROJECT)-$(VERSION)-venv/activate.sh
+	@printf '# This script adds the venv bin/ directory to PATH and sets\n' \
+		>> $(STAGING_DIR)/$(PROJECT)-$(VERSION)-venv/activate.sh
+	@printf '# APOTROPAIOS_HOME for the framework to locate its libraries.\n' \
+		>> $(STAGING_DIR)/$(PROJECT)-$(VERSION)-venv/activate.sh
+	@printf '# Version: $(VERSION)\n\n' \
+		>> $(STAGING_DIR)/$(PROJECT)-$(VERSION)-venv/activate.sh
+	@printf '# Resolve the venv root directory\n' \
+		>> $(STAGING_DIR)/$(PROJECT)-$(VERSION)-venv/activate.sh
+	@printf '_APOTROPAIOS_VENV_DIR="$$(cd "$$(dirname "$${BASH_SOURCE[0]}")" && pwd)"\n\n' \
+		>> $(STAGING_DIR)/$(PROJECT)-$(VERSION)-venv/activate.sh
+	@printf '# Guard against double-activation\n' \
+		>> $(STAGING_DIR)/$(PROJECT)-$(VERSION)-venv/activate.sh
+	@printf 'if [[ -n "$${APOTROPAIOS_HOME:-}" ]]; then\n' \
+		>> $(STAGING_DIR)/$(PROJECT)-$(VERSION)-venv/activate.sh
+	@printf '    echo "Apotropaios venv already active: $${APOTROPAIOS_HOME}"\n' \
+		>> $(STAGING_DIR)/$(PROJECT)-$(VERSION)-venv/activate.sh
+	@printf '    echo "Run apotropaios_deactivate first to switch environments."\n' \
+		>> $(STAGING_DIR)/$(PROJECT)-$(VERSION)-venv/activate.sh
+	@printf '    return 1 2>/dev/null || exit 1\n' \
+		>> $(STAGING_DIR)/$(PROJECT)-$(VERSION)-venv/activate.sh
+	@printf 'fi\n\n' \
+		>> $(STAGING_DIR)/$(PROJECT)-$(VERSION)-venv/activate.sh
+	@printf '# Save original PATH for deactivation\n' \
+		>> $(STAGING_DIR)/$(PROJECT)-$(VERSION)-venv/activate.sh
+	@printf 'export _APOTROPAIOS_OLD_PATH="$${PATH}"\n' \
+		>> $(STAGING_DIR)/$(PROJECT)-$(VERSION)-venv/activate.sh
+	@printf 'export _APOTROPAIOS_OLD_PS1="$${PS1:-}"\n\n' \
+		>> $(STAGING_DIR)/$(PROJECT)-$(VERSION)-venv/activate.sh
+	@printf '# Set environment\n' \
+		>> $(STAGING_DIR)/$(PROJECT)-$(VERSION)-venv/activate.sh
+	@printf 'export APOTROPAIOS_HOME="$${_APOTROPAIOS_VENV_DIR}"\n' \
+		>> $(STAGING_DIR)/$(PROJECT)-$(VERSION)-venv/activate.sh
+	@printf 'export PATH="$${_APOTROPAIOS_VENV_DIR}/bin:$${PATH}"\n' \
+		>> $(STAGING_DIR)/$(PROJECT)-$(VERSION)-venv/activate.sh
+	@printf 'export PS1="(apotropaios) $${PS1:-\\$$}"\n\n' \
+		>> $(STAGING_DIR)/$(PROJECT)-$(VERSION)-venv/activate.sh
+	@printf '# Deactivation function\n' \
+		>> $(STAGING_DIR)/$(PROJECT)-$(VERSION)-venv/activate.sh
+	@printf 'apotropaios_deactivate() {\n' \
+		>> $(STAGING_DIR)/$(PROJECT)-$(VERSION)-venv/activate.sh
+	@printf '    if [[ -z "$${APOTROPAIOS_HOME:-}" ]]; then\n' \
+		>> $(STAGING_DIR)/$(PROJECT)-$(VERSION)-venv/activate.sh
+	@printf '        echo "No active Apotropaios venv to deactivate."\n' \
+		>> $(STAGING_DIR)/$(PROJECT)-$(VERSION)-venv/activate.sh
+	@printf '        return 1\n' \
+		>> $(STAGING_DIR)/$(PROJECT)-$(VERSION)-venv/activate.sh
+	@printf '    fi\n' \
+		>> $(STAGING_DIR)/$(PROJECT)-$(VERSION)-venv/activate.sh
+	@printf '    export PATH="$${_APOTROPAIOS_OLD_PATH}"\n' \
+		>> $(STAGING_DIR)/$(PROJECT)-$(VERSION)-venv/activate.sh
+	@printf '    export PS1="$${_APOTROPAIOS_OLD_PS1}"\n' \
+		>> $(STAGING_DIR)/$(PROJECT)-$(VERSION)-venv/activate.sh
+	@printf '    unset APOTROPAIOS_HOME _APOTROPAIOS_VENV_DIR\n' \
+		>> $(STAGING_DIR)/$(PROJECT)-$(VERSION)-venv/activate.sh
+	@printf '    unset _APOTROPAIOS_OLD_PATH _APOTROPAIOS_OLD_PS1\n' \
+		>> $(STAGING_DIR)/$(PROJECT)-$(VERSION)-venv/activate.sh
+	@printf '    unset -f apotropaios_deactivate\n' \
+		>> $(STAGING_DIR)/$(PROJECT)-$(VERSION)-venv/activate.sh
+	@printf '    echo "Apotropaios venv deactivated."\n' \
+		>> $(STAGING_DIR)/$(PROJECT)-$(VERSION)-venv/activate.sh
+	@printf '}\n\n' \
+		>> $(STAGING_DIR)/$(PROJECT)-$(VERSION)-venv/activate.sh
+	@printf 'echo "Apotropaios v$(VERSION) venv activated."\n' \
+		>> $(STAGING_DIR)/$(PROJECT)-$(VERSION)-venv/activate.sh
+	@printf 'echo "  APOTROPAIOS_HOME=$${APOTROPAIOS_HOME}"\n' \
+		>> $(STAGING_DIR)/$(PROJECT)-$(VERSION)-venv/activate.sh
+	@printf 'echo "  Run: sudo apotropaios [command]"\n' \
+		>> $(STAGING_DIR)/$(PROJECT)-$(VERSION)-venv/activate.sh
+	@printf 'echo "  Deactivate: apotropaios_deactivate"\n' \
+		>> $(STAGING_DIR)/$(PROJECT)-$(VERSION)-venv/activate.sh
+	@chmod 644 $(STAGING_DIR)/$(PROJECT)-$(VERSION)-venv/activate.sh
+	@# --- Package ---
+	@cd $(STAGING_DIR) && $(TAR) -czf ../$(PROJECT)-$(VERSION)-venv.tar.gz $(PROJECT)-$(VERSION)-venv
+	@cd $(DIST_DIR) && $(SHA256) $(PROJECT)-$(VERSION)-venv.tar.gz > SHA256SUMS.txt 2>/dev/null || true
+	@rm -rf $(STAGING_DIR)
+	@echo "  Package:  $(DIST_DIR)/$(PROJECT)-$(VERSION)-venv.tar.gz"
+	@echo "  Checksum: $(DIST_DIR)/SHA256SUMS.txt"
+	@echo "==> dist-venv complete"
+	@echo ""
+	@echo "  Usage:"
+	@echo "    tar -xzf $(PROJECT)-$(VERSION)-venv.tar.gz"
+	@echo "    cd $(PROJECT)-$(VERSION)-venv"
+	@echo "    source activate.sh"
+	@echo "    sudo apotropaios detect"
+	@echo "    apotropaios_deactivate"
+
+# ==============================================================================
+# release — Build ALL distribution packages with unified SHA256SUMS.txt
+# Generates: runtime, full, and venv tarballs + single checksum file
+# This is the target used for GitHub Release asset preparation.
+# ==============================================================================
+release: clean
+	@echo "╔══════════════════════════════════════════════════════════════╗"
+	@echo "║           Apotropaios v$(VERSION) — Release Build              ║"
+	@echo "╚══════════════════════════════════════════════════════════════╝"
+	@echo ""
+	@# --- Step 1: Build runtime package ---
+	@echo "[1/4] Building runtime package..."
+	@mkdir -p $(STAGING_DIR)/$(PROJECT)-$(VERSION)
+	$(call stage_base,$(STAGING_DIR)/$(PROJECT)-$(VERSION))
+	@cd $(STAGING_DIR) && $(TAR) -czf ../$(PROJECT)-$(VERSION).tar.gz $(PROJECT)-$(VERSION)
+	@rm -rf $(STAGING_DIR)/$(PROJECT)-$(VERSION)
+	@echo "  ✓ $(PROJECT)-$(VERSION).tar.gz"
+	@# --- Step 2: Build full package ---
+	@echo "[2/4] Building full (developer) package..."
+	@mkdir -p $(STAGING_DIR)/$(PROJECT)-$(VERSION)-full
+	$(call stage_base,$(STAGING_DIR)/$(PROJECT)-$(VERSION)-full)
+	@cp -r tests $(STAGING_DIR)/$(PROJECT)-$(VERSION)-full/ 2>/dev/null || true
+	@cp -r .github $(STAGING_DIR)/$(PROJECT)-$(VERSION)-full/ 2>/dev/null || true
+	@cp -r tasks $(STAGING_DIR)/$(PROJECT)-$(VERSION)-full/ 2>/dev/null || true
+	@cd $(STAGING_DIR) && $(TAR) -czf ../$(PROJECT)-$(VERSION)-full.tar.gz $(PROJECT)-$(VERSION)-full
+	@rm -rf $(STAGING_DIR)/$(PROJECT)-$(VERSION)-full
+	@echo "  ✓ $(PROJECT)-$(VERSION)-full.tar.gz"
+	@# --- Step 3: Build venv package (reuse dist-venv logic inline) ---
+	@echo "[3/4] Building venv (portable) package..."
+	@mkdir -p $(STAGING_DIR)/$(PROJECT)-$(VERSION)-venv
+	$(call stage_base,$(STAGING_DIR)/$(PROJECT)-$(VERSION)-venv)
+	@mkdir -p $(STAGING_DIR)/$(PROJECT)-$(VERSION)-venv/bin
+	@printf '#!/usr/bin/env bash\n# Wrapper — auto-generated by make release\nVENV_DIR="$$(cd "$$(dirname "$${BASH_SOURCE[0]}")/.." && pwd)"\nexec "$${VENV_DIR}/apotropaios.sh" "$$@"\n' \
+		> $(STAGING_DIR)/$(PROJECT)-$(VERSION)-venv/bin/apotropaios
+	@chmod 755 $(STAGING_DIR)/$(PROJECT)-$(VERSION)-venv/bin/apotropaios
+	@printf '#!/usr/bin/env bash\n# Apotropaios v$(VERSION) Virtual Environment\n# Usage: source activate.sh | Deactivate: apotropaios_deactivate\n\n_APOTROPAIOS_VENV_DIR="$$(cd "$$(dirname "$${BASH_SOURCE[0]}")" && pwd)"\n\nif [[ -n "$${APOTROPAIOS_HOME:-}" ]]; then\n    echo "Apotropaios venv already active: $${APOTROPAIOS_HOME}"\n    echo "Run apotropaios_deactivate first."\n    return 1 2>/dev/null || exit 1\nfi\n\nexport _APOTROPAIOS_OLD_PATH="$${PATH}"\nexport _APOTROPAIOS_OLD_PS1="$${PS1:-}"\nexport APOTROPAIOS_HOME="$${_APOTROPAIOS_VENV_DIR}"\nexport PATH="$${_APOTROPAIOS_VENV_DIR}/bin:$${PATH}"\nexport PS1="(apotropaios) $${PS1:-\\$$}"\n\napotropaios_deactivate() {\n    if [[ -z "$${APOTROPAIOS_HOME:-}" ]]; then\n        echo "No active Apotropaios venv."\n        return 1\n    fi\n    export PATH="$${_APOTROPAIOS_OLD_PATH}"\n    export PS1="$${_APOTROPAIOS_OLD_PS1}"\n    unset APOTROPAIOS_HOME _APOTROPAIOS_VENV_DIR _APOTROPAIOS_OLD_PATH _APOTROPAIOS_OLD_PS1\n    unset -f apotropaios_deactivate\n    echo "Apotropaios venv deactivated."\n}\n\necho "Apotropaios v$(VERSION) venv activated."\necho "  APOTROPAIOS_HOME=$${APOTROPAIOS_HOME}"\necho "  Run: sudo apotropaios [command]"\necho "  Deactivate: apotropaios_deactivate"\n' \
+		> $(STAGING_DIR)/$(PROJECT)-$(VERSION)-venv/activate.sh
+	@chmod 644 $(STAGING_DIR)/$(PROJECT)-$(VERSION)-venv/activate.sh
+	@cd $(STAGING_DIR) && $(TAR) -czf ../$(PROJECT)-$(VERSION)-venv.tar.gz $(PROJECT)-$(VERSION)-venv
+	@rm -rf $(STAGING_DIR)
+	@echo "  ✓ $(PROJECT)-$(VERSION)-venv.tar.gz"
+	@# --- Step 4: Generate unified SHA256SUMS.txt ---
+	@echo "[4/4] Generating SHA256 checksums..."
+	@cd $(DIST_DIR) && $(SHA256) \
+		$(PROJECT)-$(VERSION).tar.gz \
+		$(PROJECT)-$(VERSION)-full.tar.gz \
+		$(PROJECT)-$(VERSION)-venv.tar.gz \
+		> SHA256SUMS.txt 2>/dev/null || true
+	@echo "  ✓ SHA256SUMS.txt"
+	@echo ""
+	@echo "  ═══════════════════════════════════════════════════"
+	@echo "  Release artifacts in $(DIST_DIR)/:"
+	@echo ""
+	@ls -lh $(DIST_DIR)/*.tar.gz $(DIST_DIR)/SHA256SUMS.txt 2>/dev/null | awk '{printf "    %-42s %s\n", $$NF, $$5}'
+	@echo ""
+	@echo "  Verify:"
+	@echo "    cd $(DIST_DIR) && sha256sum -c SHA256SUMS.txt"
+	@echo ""
+	@echo "  GitHub Release:"
+	@echo "    git tag -a v$(VERSION) -m 'v$(VERSION)'"
+	@echo "    git push origin v$(VERSION)"
+	@echo "  ═══════════════════════════════════════════════════"
 
 # ╔════════════════════════════════════════════════════════════════════════════╗
 # ║                         INSTALLATION / REMOVAL                            ║
@@ -659,6 +848,8 @@ help:
 	@echo "  Packaging:"
 	@echo "    make dist                Build runtime distribution tarball"
 	@echo "    make dist-full           Build full distribution (includes tests, CI, tasks)"
+	@echo "    make dist-venv           Build venv package (portable, activate/deactivate)"
+	@echo "    make release             Build ALL packages + unified SHA256SUMS.txt"
 	@echo ""
 	@echo "  Installation:"
 	@echo "    make install             Install to $(INSTALL_DIR) (requires root)"
