@@ -1048,7 +1048,7 @@ This software is intended for authorized systems administration, network securit
 sudo ./apotropaios.sh detect                        # System scan
 sudo ./apotropaios.sh --log-level trace detect      # Maximum diagnostic detail
 sudo ./apotropaios.sh --version                     # Check version
-bash --version                                       # Check bash version
+bash --version                                      # Check bash version
 ```
 
 <p align="right">(<a href="#table-of-contents">back to top</a>)</p>
