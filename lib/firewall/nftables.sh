@@ -193,8 +193,9 @@ fw_nftables_add_rule() {
     # semicolons and newlines as command separators, creating an injection vector.
     log_info "nftables" "Adding rule: nft ${nft_cmd}"
 
-    # shellcheck disable=SC2086 — intentional word splitting: nft requires
-    # command string split into arguments; all components individually validated
+    # Intentional word splitting: nft requires command string split into
+    # arguments; all components individually validated before concatenation
+    # shellcheck disable=SC2086
     if ! nft ${nft_cmd} 2>/dev/null; then
         log_error "nftables" "Failed to add rule"
         return "${E_RULE_APPLY_FAIL}"
