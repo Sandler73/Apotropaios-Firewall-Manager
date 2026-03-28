@@ -1,0 +1,97 @@
+# ==============================================================================
+# GitHub Actions Release Pipeline for Apotropaios
+# Description: Full test suite + security scan, version verification,
+#              distribution build, and GitHub Release creation.
+# Version:     1.1.5
+# ==============================================================================
+
+name: Release
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write
+  security-events: read
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+jobs:
+  verify-and-test:
+    name: Verify & Test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Verify tag matches script version
+        run: |
+          SCRIPT_VERSION=$(grep -m1 'APOTROPAIOS_VERSION=' lib/core/constants.sh | cut -d'"' -f2)
+          TAG_VERSION="${GITHUB_REF_NAME#v}"
+          if [ "${SCRIPT_VERSION}" != "${TAG_VERSION}" ]; then
+            echo "::error::Tag (${TAG_VERSION}) != script (${SCRIPT_VERSION})"; exit 1
+          fi
+          echo "Version verified: ${SCRIPT_VERSION}"
+
+      - name: Install tools
+        run: |
+          sudo apt-get install -y shellcheck
+          git clone --depth 1 https://github.com/bats-core/bats-core.git /tmp/bats
+          sudo /tmp/bats/install.sh /usr/local
+
+      - name: Syntax check + lint
+        run: make lint
+
+      - name: Unit tests
+        run: |
+          mkdir -p test-results
+          bats tests/unit/ --tap > test-results/unit.tap 2>&1 || { cat test-results/unit.tap; exit 1; }
+          echo "Unit: $(grep -c '^ok ' test-results/unit.tap) passed"
+
+      - name: Integration tests
+        run: |
+          bats tests/integration/ --tap > test-results/integration.tap 2>&1 || { cat test-results/integration.tap; exit 1; }
+          echo "Integration: $(grep -c '^ok ' test-results/integration.tap) passed"
+
+      - name: Security tests
+        run: |
+          bats tests/security/ --tap > test-results/security.tap 2>&1 || { cat test-results/security.tap; exit 1; }
+          echo "Security: $(grep -c '^ok ' test-results/security.tap) passed"
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-test-results
+          path: test-results/
+          retention-days: 90
+
+  build-release:
+    name: Build & Release
+    needs: verify-and-test
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Build distribution
+        run: make dist
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            dist/*.tar.gz
+            dist/SHA256SUMS.txt
+          generate_release_notes: true
+          prerelease: ${{ contains(github.ref_name, 'rc') || contains(github.ref_name, 'beta') || contains(github.ref_name, 'alpha') }}
+          body: |
+            ## Installation
+            ```bash
+            tar -xzf apotropaios-${{ github.ref_name }}.tar.gz
+            cd apotropaios-*
+            sudo make install
+            ```
+            See [SETUP_GUIDE.md](docs/SETUP_GUIDE.md) for detailed instructions.

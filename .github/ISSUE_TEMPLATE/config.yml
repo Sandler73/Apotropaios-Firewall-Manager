@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Documentation & Wiki
+    url: https://github.com/apotropaios-project/apotropaios/wiki
+    about: Check the wiki for guides, FAQ, and troubleshooting before opening an issue
+  - name: Security Advisories (Private)
+    url: https://github.com/apotropaios-project/apotropaios/security/advisories/new
+    about: Report critical security vulnerabilities privately
+  - name: Discussions
+    url: https://github.com/apotropaios-project/apotropaios/discussions
+    about: Ask questions, share ideas, or discuss the project

@@ -1,0 +1,99 @@
+name: Documentation Issue
+description: Report incorrect, missing, or unclear documentation
+title: "[DOCS] "
+labels: ["documentation", "triage"]
+assignees: []
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## Documentation Issue
+        Help us improve our documentation. Report errors, missing content, or sections that need clarification.
+
+  - type: dropdown
+    id: doc_type
+    attributes:
+      label: Documentation Type
+      description: Which documentation is affected?
+      options:
+        - README.md
+        - SETUP_GUIDE.md
+        - USAGE_GUIDE.md
+        - DEVELOPER_GUIDE.md
+        - DEVELOPMENT_GUIDE.md
+        - CHANGELOG.md
+        - SECURITY.md
+        - CONTRIBUTING.md
+        - CODE_OF_CONDUCT.md
+        - Wiki — Home
+        - Wiki — Architecture and Design
+        - Wiki — Quick Start Guide
+        - Wiki — Usage Guide
+        - Wiki — Configuration References
+        - Wiki — Operational Scenarios
+        - Wiki — Troubleshooting Guide
+        - Wiki — FAQ
+        - Wiki — Security Policy
+        - Wiki — Developer Guide
+        - Wiki — Development Guide
+        - Wiki — Contributing
+        - Wiki — Changelog
+        - Built-in Help (--help output)
+        - Code Comments / Annotations
+        - Other
+    validations:
+      required: true
+
+  - type: dropdown
+    id: issue_type
+    attributes:
+      label: Issue Type
+      options:
+        - Incorrect / inaccurate information
+        - Missing documentation
+        - Unclear / confusing explanation
+        - Outdated content (no longer matches current behavior)
+        - Broken link or reference
+        - Typo or grammatical error
+        - Missing example or use case
+        - Accessibility improvement
+    validations:
+      required: true
+
+  - type: input
+    id: section
+    attributes:
+      label: Section or Page
+      description: Specific section heading, page URL, or line number where the issue is located
+      placeholder: "e.g., Usage Guide > CLI Commands > add-rule"
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: Describe the documentation issue in detail
+      placeholder: |
+        What is wrong or missing?
+        What does the documentation currently say?
+        What should it say instead?
+    validations:
+      required: true
+
+  - type: textarea
+    id: suggestion
+    attributes:
+      label: Suggested Fix
+      description: If you have a specific correction or improvement in mind, describe it here
+
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: Pre-submission Checklist
+      options:
+        - label: I have checked the latest version of the documentation
+          required: true
+        - label: I have searched existing issues for duplicates
+          required: true

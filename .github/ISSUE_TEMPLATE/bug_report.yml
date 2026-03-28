@@ -1,0 +1,174 @@
+name: Bug Report
+description: Report a bug or unexpected behavior in Apotropaios
+title: "[BUG] "
+labels: ["bug", "triage"]
+assignees: []
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## Bug Report
+        Thank you for taking the time to report this bug. Please fill out the information below to help us investigate and resolve the issue quickly.
+
+  - type: input
+    id: version
+    attributes:
+      label: Apotropaios Version
+      description: "Run `./apotropaios.sh --version` to get this"
+      placeholder: "e.g., 1.1.5"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: os
+    attributes:
+      label: Operating System
+      description: Which OS are you running?
+      options:
+        - Ubuntu 22.04
+        - Ubuntu 24.04
+        - Kali Linux (rolling)
+        - Debian 12
+        - Rocky Linux 9
+        - AlmaLinux 9
+        - Arch Linux
+        - Other (specify in description)
+    validations:
+      required: true
+
+  - type: input
+    id: bash_version
+    attributes:
+      label: Bash Version
+      description: "Run `bash --version` and paste the first line"
+      placeholder: "e.g., GNU bash, version 5.2.21(1)-release"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: firewall_backend
+    attributes:
+      label: Firewall Backend
+      description: Which backend was active when the bug occurred?
+      options:
+        - iptables
+        - nftables
+        - firewalld
+        - ufw
+        - ipset
+        - None selected
+        - N/A
+    validations:
+      required: true
+
+  - type: dropdown
+    id: severity
+    attributes:
+      label: Severity
+      description: How severely does this impact your use?
+      options:
+        - Critical - Framework crashes or data loss
+        - High - Major feature broken, no workaround
+        - Medium - Feature broken, workaround available
+        - Low - Minor inconvenience or cosmetic issue
+    validations:
+      required: true
+
+  - type: dropdown
+    id: component
+    attributes:
+      label: Component
+      description: Which area of the framework is affected?
+      options:
+        - Core (constants, logging, errors, validation, security, utils)
+        - Detection (OS, firewall)
+        - Firewall Backend (iptables, nftables, firewalld, ufw, ipset)
+        - Rule Engine (create, remove, activate, deactivate, index, state)
+        - Rule Import/Export
+        - Backup & Recovery
+        - Installation & Updates
+        - Interactive Menu
+        - CLI Argument Parsing
+        - Help System
+        - Configuration
+        - CI/CD Pipeline
+        - Documentation
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Bug Description
+      description: A clear and concise description of the bug
+      placeholder: Describe what happened
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to Reproduce
+      description: Exact steps to reproduce the behavior
+      placeholder: |
+        1. Run `sudo ./apotropaios.sh`
+        2. Select option '2. Rule Management'
+        3. Select option '1. Create new rule'
+        4. Enter '...'
+        5. See error
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected Behavior
+      description: What you expected to happen
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual Behavior
+      description: What actually happened (include full error output)
+      render: shell
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Log Output
+      description: |
+        Relevant log entries from `data/logs/apotropaios-*.log`.
+        Run with `--log-level trace` for maximum detail.
+      render: shell
+
+  - type: textarea
+    id: environment
+    attributes:
+      label: Additional Environment Details
+      description: |
+        Any additional context about your environment:
+        - Installed firewalls: `which iptables nft firewall-cmd ufw ipset`
+        - Kernel version: `uname -r`
+        - Container/VM: Docker, LXC, WSL, VMware, etc.
+        - SELinux/AppArmor status
+      render: shell
+
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: Pre-submission Checklist
+      options:
+        - label: I have searched existing issues for duplicates
+          required: true
+        - label: I have run with `--log-level trace` and included relevant log output
+          required: false
+        - label: I can reproduce this issue consistently
+          required: false
+        - label: I have tested with the latest version
+          required: false

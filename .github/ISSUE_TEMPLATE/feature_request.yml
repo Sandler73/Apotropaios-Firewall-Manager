@@ -1,0 +1,108 @@
+name: Feature Request
+description: Suggest a new feature or enhancement for Apotropaios
+title: "[FEATURE] "
+labels: ["enhancement", "triage"]
+assignees: []
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## Feature Request
+        Thank you for suggesting an improvement. Please describe your idea in detail.
+
+  - type: dropdown
+    id: category
+    attributes:
+      label: Feature Category
+      options:
+        - Firewall Backend (new backend or backend enhancement)
+        - Rule Management (create, modify, lifecycle)
+        - Detection & Discovery
+        - Backup & Recovery
+        - Interactive Menu / UX
+        - CLI Interface
+        - Import/Export
+        - Security Enhancement
+        - Monitoring & Alerts
+        - Installation & Updates
+        - Configuration Management
+        - Documentation
+        - CI/CD & Testing
+        - Performance
+        - New Platform Support
+        - API / Integration
+        - Other
+    validations:
+      required: true
+
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Priority Suggestion
+      description: How important is this feature to your use case?
+      options:
+        - Critical - Blocks adoption or key workflow
+        - High - Significantly improves usability
+        - Medium - Nice to have, improves experience
+        - Low - Minor improvement or convenience
+    validations:
+      required: true
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem Statement
+      description: What problem does this feature solve? What limitation are you hitting?
+      placeholder: "I'm always frustrated when..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: Proposed Solution
+      description: Describe your ideal solution in detail
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives Considered
+      description: What alternative solutions or workarounds have you considered?
+
+  - type: textarea
+    id: use_case
+    attributes:
+      label: Use Case / Example
+      description: |
+        Provide a concrete example of how this feature would be used.
+        Include CLI commands, menu interactions, or configuration examples.
+      render: shell
+
+  - type: dropdown
+    id: willing_to_implement
+    attributes:
+      label: Willing to Implement
+      description: Would you be willing to submit a PR for this feature?
+      options:
+        - "Yes - I can implement this"
+        - "Partially - I can help with implementation"
+        - "No - I need someone else to implement this"
+
+  - type: textarea
+    id: additional
+    attributes:
+      label: Additional Context
+      description: Screenshots, diagrams, references to similar tools, relevant RFCs, etc.
+
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: Pre-submission Checklist
+      options:
+        - label: I have searched existing issues and feature requests for duplicates
+          required: true
+        - label: This feature aligns with the project's security-first design philosophy
+          required: false
