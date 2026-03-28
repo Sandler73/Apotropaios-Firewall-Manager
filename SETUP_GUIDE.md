@@ -1,6 +1,6 @@
 # Apotropaios — Setup & Installation Guide
 
-A comprehensive guide for installing, configuring, and verifying Apotropaios across all supported platforms.
+Comprehensive guide for installing, configuring, and verifying Apotropaios across all supported platforms.
 
 ## Table of Contents
 
@@ -69,7 +69,7 @@ If your bash is older than 4.0, upgrade it through your package manager before p
 
 ```bash
 # Clone the repository
-git clone https://github.com/apotropaios-project/apotropaios.git
+git clone https://github.com/Sandler73/Apotropaios-Firewall-Manager.git
 cd apotropaios
 
 # Install system-wide
@@ -90,7 +90,7 @@ If you prefer not to use `make install`:
 
 ```bash
 # 1. Extract or clone to your preferred location
-git clone https://github.com/apotropaios-project/apotropaios.git /opt/apotropaios
+git clone https://github.com/Sandler73/Apotropaios-Firewall-Manager.git /opt/apotropaios
 
 # 2. Set executable permission
 chmod +x /opt/apotropaios/apotropaios.sh
@@ -112,12 +112,22 @@ sudo /opt/apotropaios/apotropaios.sh detect
 
 ### From Release Tarball
 
+Three release packages are available for each version:
+
+| Package | Contents | Use Case |
+|:--------|:---------|:---------|
+| `apotropaios-X.Y.Z.tar.gz` | Runtime: lib, conf, docs, community files | Production deployment via `make install` |
+| `apotropaios-X.Y.Z-full.tar.gz` | Runtime + tests, CI workflows, tasks | Development, contributing, CI integration |
+| `apotropaios-X.Y.Z-venv.tar.gz` | Runtime + activate.sh, bin/ wrapper | Portable deployment without system install |
+
+**Standard install from tarball:**
+
 ```bash
 # Download the release
-wget https://github.com/apotropaios-project/apotropaios/releases/latest/download/apotropaios-1.1.5.tar.gz
+wget https://github.com/Sandler73/Apotropaios-Firewall-Manager/releases/latest/download/apotropaios-1.1.5.tar.gz
 
 # Verify checksum
-wget https://github.com/apotropaios-project/apotropaios/releases/latest/download/SHA256SUMS.txt
+wget https://github.com/Sandler73/Apotropaios-Firewall-Manager/releases/latest/download/SHA256SUMS.txt
 sha256sum -c SHA256SUMS.txt
 
 # Extract and install
@@ -125,6 +135,43 @@ tar -xzf apotropaios-1.1.5.tar.gz
 cd apotropaios-1.1.5
 sudo make install
 ```
+
+### Virtual Environment Installation (venv)
+
+The venv package provides an isolated, portable deployment that does not require system-wide installation. It works by adding the framework's `bin/` directory to your PATH via an activation script — similar to Python virtual environments.
+
+```bash
+# Download the venv package
+wget https://github.com/Sandler73/Apotropaios-Firewall-Manager/releases/latest/download/apotropaios-1.1.5-venv.tar.gz
+
+# Verify checksum
+sha256sum -c SHA256SUMS.txt
+
+# Extract to any location
+tar -xzf apotropaios-1.1.5-venv.tar.gz
+cd apotropaios-1.1.5-venv
+
+# Activate the environment
+source activate.sh
+```
+
+After activation:
+- `APOTROPAIOS_HOME` is set to the venv root directory
+- `bin/apotropaios` is added to PATH (wraps `apotropaios.sh`)
+- The shell prompt is prefixed with `(apotropaios)` to indicate activation
+- Run `sudo apotropaios detect` to verify functionality
+
+To deactivate (restores original PATH and prompt):
+
+```bash
+apotropaios_deactivate
+```
+
+**Notes:**
+- The venv can be extracted to any directory — no fixed install path required
+- Multiple venv versions can coexist on the same system (only one active at a time)
+- Root/sudo is still required for firewall operations (kernel-level packet filtering)
+- Double-activation is guarded — if already active, it warns and does not corrupt PATH
 
 ---
 
@@ -399,7 +446,7 @@ For contributors and testers:
 
 ```bash
 # Clone the repository
-git clone https://github.com/apotropaios-project/apotropaios.git
+git clone https://github.com/Sandler73/Apotropaios-Firewall-Manager.git
 cd apotropaios
 
 # Automated setup (installs BATS, checks ShellCheck)
@@ -441,7 +488,7 @@ sudo apotropaios --version
 
 ```bash
 # Download new version
-wget https://github.com/apotropaios-project/apotropaios/releases/latest/download/apotropaios-X.Y.Z.tar.gz
+wget https://github.com/Sandler73/Apotropaios-Firewall-Manager/releases/latest/download/apotropaios-X.Y.Z.tar.gz
 
 # Backup current data
 cp -r /opt/apotropaios/data /tmp/apotropaios-data-backup
@@ -562,4 +609,4 @@ getenforce 2>/dev/null || echo "SELinux not available"
 make check-deps
 ```
 
-For additional help, see the [Troubleshooting Guide](wiki/Troubleshooting-Guide.md) in the wiki or [open an issue](https://github.com/apotropaios-project/apotropaios/issues/new?template=bug_report.yml).
+For additional help, see the [Troubleshooting Guide](wiki/Troubleshooting-Guide.md) in the wiki or [open an issue](https://github.com/Sandler73/Apotropaios-Firewall-Manager/issues/new?template=bug_report.yml).
