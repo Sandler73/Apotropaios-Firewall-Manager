@@ -1,1 +1,211 @@
+# ==============================================================================
+# Apotropaios - Firewall Manager
+# .gitignore — Comprehensive exclusion rules
+# ==============================================================================
 
+# ==============================================================================
+# Runtime Data (generated during execution)
+# ==============================================================================
+data/logs/
+data/rules/*.dat
+data/rules/*.dat.bak
+data/rules/*.tmp
+data/rules/*.tmp.*
+data/backups/*.tar.gz
+data/backups/*.sha256
+data/backups/immutable/
+data/.tmp/
+data/.tmp/**
+
+# ==============================================================================
+# Build Artifacts
+# ==============================================================================
+dist/
+*.tar.gz
+SHA256SUMS.txt
+
+# ==============================================================================
+# Test Artifacts
+# ==============================================================================
+test-results/
+*.tap
+coverage/
+.bats-run-*
+
+# ==============================================================================
+# Lock and PID Files
+# ==============================================================================
+*.lock
+*.pid
+apotropaios.lock
+apotropaios.pid
+
+# ==============================================================================
+# Editor and IDE Files
+# ==============================================================================
+
+# VS Code
+.vscode/
+*.code-workspace
+
+# JetBrains (IntelliJ, PyCharm, WebStorm, etc.)
+.idea/
+*.iml
+*.iws
+*.ipr
+out/
+
+# Vim / Neovim
+*.swp
+*.swo
+*.swn
+*~
+.netrwhist
+Session.vim
+.vim/
+
+# Emacs
+*~
+\#*\#
+.#*
+*.elc
+auto-save-list/
+
+# Sublime Text
+*.sublime-project
+*.sublime-workspace
+
+# Nano
+*.save
+
+# Kate
+.kate-swp
+
+# ==============================================================================
+# Operating System Files
+# ==============================================================================
+
+# macOS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+.AppleDouble
+.LSOverride
+Icon?
+
+# Linux
+*~
+.fuse_hidden*
+.directory
+.Trash-*
+.nfs*
+
+# Windows
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+[Dd]esktop.ini
+$RECYCLE.BIN/
+*.stackdump
+
+# ==============================================================================
+# Shell / Bash Specific
+# ==============================================================================
+*.bash_history
+.bash_history
+.sh_history
+
+# ShellCheck directive cache
+.shellcheck-*
+
+# ==============================================================================
+# Version Control
+# ==============================================================================
+*.orig
+*.rej
+*.bak
+*.backup
+*.old
+*.tmp
+
+# Patch files (keep .patch in repo if intentional)
+# *.patch
+
+# ==============================================================================
+# Security Sensitive (NEVER commit)
+# ==============================================================================
+*.pem
+*.key
+*.crt
+*.csr
+*.p12
+*.pfx
+*.jks
+*.keystore
+*.secret
+*.secrets
+.env
+.env.*
+!.env.example
+credentials*
+!credentials.example
+
+# SSH keys
+id_rsa
+id_rsa.pub
+id_ed25519
+id_ed25519.pub
+known_hosts
+
+# GPG
+*.gpg
+*.asc
+secring.*
+
+# ==============================================================================
+# Package Manager Artifacts
+# ==============================================================================
+node_modules/
+vendor/
+__pycache__/
+*.pyc
+*.pyo
+.eggs/
+*.egg-info/
+pip-log.txt
+pip-delete-this-directory.txt
+
+# ==============================================================================
+# Container / Virtualization
+# ==============================================================================
+.vagrant/
+*.box
+Dockerfile.local
+docker-compose.override.yml
+.docker/
+
+# ==============================================================================
+# Miscellaneous
+# ==============================================================================
+*.log
+!docs/wiki/*.md
+*.cache
+*.dump
+core
+core.*
+
+# Compressed archives (keep only in dist/)
+*.gz
+*.bz2
+*.xz
+*.zip
+*.7z
+!dist/*.tar.gz
+
+# Allow empty data directories via .gitkeep
+!data/logs/.gitkeep
+!data/rules/.gitkeep
+!data/backups/.gitkeep
