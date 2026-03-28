@@ -23,8 +23,8 @@ This project adheres to the [Code of Conduct](CODE_OF_CONDUCT.md). By participat
 
 ## Ways to Contribute
 
-- **Bug Reports** — File detailed reports with reproduction steps using the [Bug Report template](https://github.com/apotropaios-project/apotropaios/issues/new?template=bug_report.yml)
-- **Feature Requests** — Propose new capabilities with use cases using the [Feature Request template](https://github.com/apotropaios-project/apotropaios/issues/new?template=feature_request.yml)
+- **Bug Reports** — File detailed reports with reproduction steps using the [Bug Report template](https://github.com/Sandler73/Apotropaios-Firewall-Manager/issues/new?template=bug_report.yml)
+- **Feature Requests** — Propose new capabilities with use cases using the [Feature Request template](https://github.com/Sandler73/Apotropaios-Firewall-Manager/issues/new?template=feature_request.yml)
 - **Security Reports** — See [SECURITY.md](SECURITY.md) for vulnerability reporting procedures
 - **Code Contributions** — Submit pull requests for bugs, features, or improvements
 - **Documentation** — Improve guides, wiki pages, code comments, or help text
