@@ -1862,7 +1862,7 @@ menu_help() {
     printf '    restore FILE        Restore from backup\n'
     printf '    install FW_NAME     Install a firewall\n'
     printf '    update FW_NAME      Update a firewall\n\n'
-    printf '  %bDocumentation:%b See docs/ directory or wiki at docs/wiki/\n\n'
+    printf '  %bDocumentation:%b See docs/ directory or wiki at docs/wiki/\n\n' "${COLOR_BOLD}" "${COLOR_RESET}"
 
     printf '  Press Enter to continue...'
     read -r </dev/tty 2>/dev/null || true
