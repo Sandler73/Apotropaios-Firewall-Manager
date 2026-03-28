@@ -685,7 +685,7 @@ All log messages are automatically sanitized before writing. The following patte
 ```
 apotropaios/                          # Repository root
 ├── apotropaios.sh                    # Main entry point (chmod +x)
-├── Makefile                          # 38 targets: build, test, install, security-scan
+├── Makefile                          # 40 targets: build, test, package, install, security-scan
 ├── .shellcheckrc                     # ShellCheck configuration with source-path
 ├── .gitignore                        # Git ignore rules
 ├── conf/
@@ -856,8 +856,8 @@ sudo ./apotropaios.sh install ufw         # Simplest option
 Check directory permissions and disk space:
 
 ```bash
-ls -la data/logs/                               # Check permissions
-df -h                                           # Check disk space
+ls -la data/logs/                       # Check permissions
+df -h                                   # Check disk space
 sudo ./apotropaios.sh --log-level trace detect  # Maximum diagnostic detail
 ```
 
