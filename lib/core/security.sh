@@ -315,6 +315,7 @@ security_acquire_lock() {
 # Parameters:   $1 - Lock file path (optional, uses last acquired if not given)
 # Returns:      0 on success
 # ==============================================================================
+# shellcheck disable=SC2120
 security_release_lock() {
     local lock_file="${1:-${_LOCK_FD}}"
 
