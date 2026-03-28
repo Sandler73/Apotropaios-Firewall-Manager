@@ -1,20 +1,19 @@
 <a id="top"></a>
 
-<p align="center">
-
-```
+<div align="center">
+<pre>
     _                _                         _
    / \   _ __   ___ | |_ _ __ ___  _ __   __ _(_) ___  ___
   / _ \ | '_ \ / _ \| __| '__/ _ \| '_ \ / _` | |/ _ \/ __|
  / ___ \| |_) | (_) | |_| | | (_) | |_) | (_| | | (_) \__ \
 /_/   \_\ .__/ \___/ \__|_|  \___/| .__/ \__,_|_|\___/|___/
         |_|                       |_|
-```
+</pre>
+</div>
 
-  <h1 align="center">Apotropaios — Firewall Manager</h1>
-  <p align="center">
-    A unified, security-focused firewall management framework for Linux<br>supporting five backends with zero external dependencies.
-  </p>
+<h1 align="center">Apotropaios — Firewall Manager</h1>
+<p align="center">
+  A unified, security-focused firewall management framework for Linux<br>supporting five backends with zero external dependencies.
 </p>
 
 <p align="center">
@@ -27,13 +26,13 @@
 
 <p align="center">
   <img src="https://img.shields.io/badge/ShellCheck-passing-7B68EE?style=flat-square&logo=gnubash&logoColor=white" alt="ShellCheck">
-  <img src="https://github.com/apotropaios-project/apotropaios/actions/workflows/ci.yml/badge.svg" alt="CI Tests">
+  <img src="https://img.shields.io/badge/CI-passing-brightgreen?style=flat-square&logo=githubactions&logoColor=white" alt="CI Tests">
   <img src="https://img.shields.io/badge/BATS-375%20tests-blue?style=flat-square" alt="375 BATS Tests">
   <img src="https://img.shields.io/badge/security-48%20CWE%20checks-blueviolet?style=flat-square" alt="48 CWE Checks">
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/github/last-commit/apotropaios-project/apotropaios?style=flat-square&color=FF6F3C&label=last%20commit" alt="Last Commit">
+  <img src="https://img.shields.io/github/last-commit/Sandler73/Apotropaios-Firewall-Manager?style=flat-square&color=FF6F3C&label=last%20commit" alt="Last Commit">
   <img src="https://img.shields.io/badge/maintained-yes-brightgreen?style=flat-square" alt="Maintained">
   <img src="https://img.shields.io/badge/PRs-welcome-azure?style=flat-square" alt="PRs Welcome">
   <img src="https://img.shields.io/badge/dependencies-zero-brightgreen?style=flat-square" alt="Zero Dependencies">
@@ -47,6 +46,10 @@
   <a href="SECURITY.md">Security</a> ·
   <a href="#testing">Testing</a> ·
   <a href="#contributing">Contributing</a>
+</p>
+
+<p align="center">
+  📖 <a href="https://github.com/Sandler73/Apotropaios-Firewall-Manager/wiki"><strong>Explore the Wiki Documentation »</strong></a>
 </p>
 
 ---
@@ -328,7 +331,7 @@ Tested in CI on every commit across 7 platforms:
 
 ```bash
 # 1. Clone or download
-git clone https://github.com/apotropaios-project/apotropaios.git
+git clone https://github.com/Sandler73/Apotropaios-Firewall-Manager.git
 cd apotropaios
 chmod +x apotropaios.sh
 
@@ -1017,18 +1020,18 @@ This software is intended for authorized systems administration, network securit
 </p>
 
 <p align="center">
-  <a href="https://github.com/apotropaios-project/apotropaios/issues/new?template=bug_report.yml">Report Bug</a>
+  <a href="https://github.com/Sandler73/Apotropaios-Firewall-Manager/issues/new?template=bug_report.yml">Report Bug</a>
   ·
-  <a href="https://github.com/apotropaios-project/apotropaios/issues/new?template=feature_request.yml">Request Feature</a>
+  <a href="https://github.com/Sandler73/Apotropaios-Firewall-Manager/issues/new?template=feature_request.yml">Request Feature</a>
   ·
-  <a href="https://github.com/apotropaios-project/apotropaios/issues/new?template=security_vulnerability.yml">Report Vulnerability</a>
+  <a href="https://github.com/Sandler73/Apotropaios-Firewall-Manager/issues/new?template=security_vulnerability.yml">Report Vulnerability</a>
 </p>
 
 <p align="center">
-  <a href="https://github.com/sponsors/apotropaios-project">
+  <a href="https://github.com/sponsors/Sandler73">
     <img src="https://img.shields.io/badge/Sponsor-❤️-ea4aaa?style=for-the-badge&logo=githubsponsors&logoColor=white" alt="Sponsor">
   </a>
-  <a href="https://ko-fi.com/apotropaios">
+  <a href="https://ko-fi.com/Sandler73">
     <img src="https://img.shields.io/badge/Ko--fi-Buy%20Me%20a%20Coffee-FF5E5B?style=for-the-badge&logo=ko-fi&logoColor=white" alt="Ko-fi">
   </a>
 </p>
@@ -1037,10 +1040,10 @@ This software is intended for authorized systems administration, network securit
 
 - **Documentation**: Start with the [Wiki](docs/wiki/) and [USAGE_GUIDE.md](docs/USAGE_GUIDE.md)
 - **Built-in Help**: Run `sudo ./apotropaios.sh COMMAND --help` for any of the 17 commands
-- **Bug Reports**: Use the [Bug Report template](https://github.com/apotropaios-project/apotropaios/issues/new?template=bug_report.yml)
-- **Feature Requests**: Use the [Feature Request template](https://github.com/apotropaios-project/apotropaios/issues/new?template=feature_request.yml)
+- **Bug Reports**: Use the [Bug Report template](https://github.com/Sandler73/Apotropaios-Firewall-Manager/issues/new?template=bug_report.yml)
+- **Feature Requests**: Use the [Feature Request template](https://github.com/Sandler73/Apotropaios-Firewall-Manager/issues/new?template=feature_request.yml)
 - **Security Issues**: See [SECURITY.md](SECURITY.md) — use private reporting for critical vulnerabilities
-- **Discussions**: [GitHub Discussions](https://github.com/apotropaios-project/apotropaios/discussions) for questions and ideas
+- **Discussions**: [GitHub Discussions](https://github.com/Sandler73/Apotropaios-Firewall-Manager/discussions) for questions and ideas
 
 **Diagnostic Commands:**
 
