@@ -22,7 +22,7 @@
 #               sudo ./apotropaios.sh add-rule --direction inbound --protocol tcp --dst-port 443 --action accept
 #               sudo ./apotropaios.sh import /path/to/rules.conf
 #               sudo ./apotropaios.sh backup pre-deployment
-# Version:      1.1.5
+# Version:      1.1.10
 # ==============================================================================
 
 set -euo pipefail
@@ -107,6 +107,7 @@ _CLI_LOG_LEVEL=""
 _CLI_BACKEND=""
 _CLI_COMMAND=""
 _CLI_NON_INTERACTIVE=0
+_CLI_INTERACTIVE=0
 _CLI_COMMAND_HELP=0
 declare -a _CLI_COMMAND_ARGS=()
 
@@ -153,6 +154,9 @@ _parse_args() {
             --non-interactive)
                 _CLI_NON_INTERACTIVE=1
                 ;;
+            --interactive)
+                _CLI_INTERACTIVE=1
+                ;;
             -*)
                 # If a command is already set, pass unknown flags as command args
                 # (e.g., add-rule --direction inbound)
@@ -190,9 +194,10 @@ _show_usage() {
     printf '%bGlobal Options:%b\n' "${COLOR_BOLD}" "${COLOR_RESET}"
     printf '  %-26s %s\n' "-h, --help" "Show this help (or COMMAND --help for details)"
     printf '  %-26s %s\n' "-v, --version" "Show version and exit"
+    printf '  %-26s %s\n' "--interactive" "Launch the interactive menu-driven interface"
     printf '  %-26s %s\n' "--log-level LEVEL" "Set verbosity: trace|debug|info|warning|error|critical"
     printf '  %-26s %s\n' "--backend NAME" "Set firewall: firewalld|ipset|iptables|nftables|ufw"
-    printf '  %-26s %s\n' "--non-interactive" "Disable interactive prompts"
+    printf '  %-26s %s\n' "--non-interactive" "Disable interactive prompts (for scripting/automation)"
 
     printf '\n%bCommands:%b\n' "${COLOR_BOLD}" "${COLOR_RESET}"
     printf '  %b%-22s%b %s\n' "${COLOR_CYAN}" "menu" "${COLOR_RESET}" "Launch interactive menu (default if no command given)"
@@ -216,10 +221,15 @@ _show_usage() {
     printf '  %b%-22s%b %s\n' "${COLOR_CYAN}" "install FW_NAME" "${COLOR_RESET}" "Install a firewall package"
     printf '  %b%-22s%b %s\n' "${COLOR_CYAN}" "update FW_NAME" "${COLOR_RESET}" "Update a firewall package"
 
+    printf '\n%bOperation Modes:%b\n' "${COLOR_BOLD}" "${COLOR_RESET}"
+    printf '  The framework operates in two distinct modes:\n'
+    printf '    %bInteractive:%b  sudo %s --interactive        %b(guided menu interface)%b\n' "${COLOR_CYAN}" "${COLOR_RESET}" "$(basename "$0")" "${COLOR_DIM}" "${COLOR_RESET}"
+    printf '    %bCLI:%b          sudo %s COMMAND [OPTIONS]    %b(direct command execution)%b\n' "${COLOR_CYAN}" "${COLOR_RESET}" "$(basename "$0")" "${COLOR_DIM}" "${COLOR_RESET}"
+
     printf '\n%bQuick Examples:%b\n' "${COLOR_BOLD}" "${COLOR_RESET}"
-    printf '  sudo %s                                       # Launch menu\n' "$(basename "$0")"
-    printf '  sudo %s detect                                # Scan system\n' "$(basename "$0")"
-    printf '  sudo %s add-rule --help                       # Full add-rule help\n' "$(basename "$0")"
+    printf '  sudo %s --interactive                          # Launch interactive menu\n' "$(basename "$0")"
+    printf '  sudo %s detect                                 # Scan system (CLI mode)\n' "$(basename "$0")"
+    printf '  sudo %s add-rule --help                        # Full add-rule help\n' "$(basename "$0")"
     printf '  sudo %s add-rule --dst-port 443 --action accept\n' "$(basename "$0")"
     printf '  sudo %s backup pre-deploy\n' "$(basename "$0")"
 
@@ -451,6 +461,24 @@ _cli_add_rule() {
 # ==============================================================================
 main() {
     _parse_args "$@"
+
+    # Validate mutually exclusive flags
+    if [[ "${_CLI_INTERACTIVE}" -eq 1 ]] && [[ "${_CLI_NON_INTERACTIVE}" -eq 1 ]]; then
+        printf 'Error: --interactive and --non-interactive are mutually exclusive\n' >&2
+        exit "${E_USAGE}"
+    fi
+
+    # Validate --interactive is not combined with a CLI command
+    if [[ "${_CLI_INTERACTIVE}" -eq 1 ]] && [[ -n "${_CLI_COMMAND}" ]]; then
+        printf 'Error: --interactive cannot be combined with a command (%s)\n' "${_CLI_COMMAND}" >&2
+        printf 'Use --interactive for menu mode, or specify a command for CLI mode\n' >&2
+        exit "${E_USAGE}"
+    fi
+
+    # --interactive flag forces menu mode
+    if [[ "${_CLI_INTERACTIVE}" -eq 1 ]]; then
+        _CLI_COMMAND="menu"
+    fi
 
     # Per-command help (Tier 2) does not require full initialization
     # — the help functions only use constants and printf, no firewall ops
