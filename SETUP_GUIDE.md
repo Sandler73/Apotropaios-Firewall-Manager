@@ -124,15 +124,15 @@ Three release packages are available for each version:
 
 ```bash
 # Download the release
-wget https://github.com/Sandler73/Apotropaios-Firewall-Manager/releases/latest/download/apotropaios-1.1.5.tar.gz
+wget https://github.com/Sandler73/Apotropaios-Firewall-Manager/releases/latest/download/apotropaios-1.1.10.tar.gz
 
 # Verify checksum
 wget https://github.com/Sandler73/Apotropaios-Firewall-Manager/releases/latest/download/SHA256SUMS.txt
 sha256sum -c SHA256SUMS.txt
 
 # Extract and install
-tar -xzf apotropaios-1.1.5.tar.gz
-cd apotropaios-1.1.5
+tar -xzf apotropaios-1.1.10.tar.gz
+cd apotropaios-1.1.10
 sudo make install
 ```
 
@@ -142,14 +142,14 @@ The venv package provides an isolated, portable deployment that does not require
 
 ```bash
 # Download the venv package
-wget https://github.com/Sandler73/Apotropaios-Firewall-Manager/releases/latest/download/apotropaios-1.1.5-venv.tar.gz
+wget https://github.com/Sandler73/Apotropaios-Firewall-Manager/releases/latest/download/apotropaios-1.1.10-venv.tar.gz
 
 # Verify checksum
 sha256sum -c SHA256SUMS.txt
 
 # Extract to any location
-tar -xzf apotropaios-1.1.5-venv.tar.gz
-cd apotropaios-1.1.5-venv
+tar -xzf apotropaios-1.1.10-venv.tar.gz
+cd apotropaios-1.1.10-venv
 
 # Activate the environment
 source activate.sh
@@ -190,7 +190,7 @@ sudo apt-get install -y bash coreutils procps util-linux
 bash --version
 ```
 
-**Kali Linux note:** Kali's rolling release model means bash and system library versions change frequently. Apotropaios v1.1.5+ includes portable validation that works across all bash versions shipped with Kali.
+**Kali Linux note:** Kali's rolling release model means bash and system library versions change frequently. Apotropaios v1.1.10+ includes portable validation that works across all bash versions shipped with Kali.
 
 ### Rocky Linux 9 / AlmaLinux 9
 
@@ -268,7 +268,7 @@ If no firewall is detected, install one:
 
 ```bash
 # Interactive installation
-sudo apotropaios
+sudo apotropaios --interactive
 # Navigate to: Install & Update > select firewall
 
 # CLI installation
@@ -287,7 +287,7 @@ If multiple firewalls are installed:
 sudo apotropaios --backend iptables detect
 
 # Interactive menu
-sudo apotropaios
+sudo apotropaios --interactive
 # Navigate to: Firewall Management > Select active firewall backend
 ```
 
@@ -322,7 +322,7 @@ make test
 ### Expected Output
 
 ```
-Apotropaios - Firewall Manager v1.1.5
+Apotropaios - Firewall Manager v1.1.10
 
 [INFO    ] [logging] Logging initialized...
 [INFO    ] [os_detect] OS detected via /etc/os-release: Ubuntu (ubuntu)
@@ -463,7 +463,7 @@ sudo dnf install ShellCheck            # RHEL family
 sudo pacman -S shellcheck              # Arch
 
 # Verify everything works
-make test              # Full suite: lint + unit + integration + security (375 tests)
+make test              # Full suite: lint + unit + integration + security (380 tests)
 make test-report       # Detailed per-file breakdown
 make check-deps        # Show all tool availability
 make metrics           # Project statistics
@@ -542,7 +542,7 @@ sudo rm -rf /opt/apotropaios/data
 
 **Cause:** Typically occurs when the installation path contains shell metacharacters (parentheses, ampersands, etc.) or when running an older version on newer bash.
 
-**Fix:** Upgrade to v1.1.5+ which uses portable whitelist-based path validation. Ensure the installation path contains only alphanumeric characters, slashes, hyphens, underscores, dots, and spaces.
+**Fix:** Upgrade to v1.1.10+ which uses portable whitelist-based path validation. Ensure the installation path contains only alphanumeric characters, slashes, hyphens, underscores, dots, and spaces.
 
 ### "BATS not installed" when running make test
 
