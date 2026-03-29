@@ -16,7 +16,7 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/version-1.1.5-blue?style=flat-square" alt="Version 1.1.5">
+  <img src="https://img.shields.io/badge/version-1.1.10-blue?style=flat-square" alt="Version 1.1.10">
   <img src="https://img.shields.io/badge/shell-bash%204.0%2B-4EAA25?style=flat-square&logo=gnubash&logoColor=white" alt="Bash 4.0+">
   <img src="https://img.shields.io/badge/platform-linux-FCC624?style=flat-square&logo=linux&logoColor=black" alt="Linux">
   <img src="https://img.shields.io/badge/license-MIT-green?style=flat-square" alt="MIT License">
@@ -26,7 +26,7 @@
 <p align="center">
   <img src="https://img.shields.io/badge/ShellCheck-passing-7B68EE?style=flat-square&logo=gnubash&logoColor=white" alt="ShellCheck">
   <img src="https://img.shields.io/badge/CI-passing-brightgreen?style=flat-square&logo=githubactions&logoColor=white" alt="CI Tests">
-  <img src="https://img.shields.io/badge/BATS-375%20tests-blue?style=flat-square" alt="375 BATS Tests">
+  <img src="https://img.shields.io/badge/BATS-380%20tests-blue?style=flat-square" alt="380 BATS Tests">
   <img src="https://img.shields.io/badge/security-48%20CWE%20checks-blueviolet?style=flat-square" alt="48 CWE Checks">
 </p>
 
@@ -338,7 +338,7 @@ chmod +x apotropaios.sh
 sudo ./apotropaios.sh detect
 
 # 3. Launch the interactive menu
-sudo ./apotropaios.sh
+sudo ./apotropaios.sh --interactive
 
 # Or use the CLI directly:
 sudo ./apotropaios.sh add-rule --dst-port 443 --action accept --protocol tcp
@@ -346,9 +346,12 @@ sudo ./apotropaios.sh list-rules
 sudo ./apotropaios.sh backup pre-deploy
 ```
 
-**Interactive menu**: Running with no arguments (or `menu`) launches a guided, 7-category menu-driven interface with validated input, cancel support, and per-backend configuration submenus.
+**Two operation modes:**
 
-**Direct CLI**: All 17 commands work directly — `add-rule`, `remove-rule`, `list-rules`, `backup`, `restore`, `import`, `export`, etc. Every command supports `--help` for detailed usage. Full CLI reference in the [Usage Guide](docs/USAGE_GUIDE.md).
+- **Interactive mode** (`--interactive`): Launches the guided, 7-category menu-driven interface with validated input, cancel support, and per-backend configuration submenus. Recommended for first-time users and complex multi-step operations.
+- **CLI mode** (`COMMAND [OPTIONS]`): Direct command execution for scripting, automation, and advanced users. All 17 commands support `--help` for detailed usage.
+
+**Backward compatibility**: Running with no arguments or the `menu` subcommand also launches the interactive menu.
 
 **Alternative install methods**: See [SETUP_GUIDE.md](docs/SETUP_GUIDE.md) for system-wide installation via `make install`, configuration file setup, and first-run instructions.
 
@@ -521,16 +524,18 @@ sudo ./apotropaios.sh status          # Backend service status
 sudo ./apotropaios.sh system-rules    # Raw rules (iptables -L, nft list, etc.)
 ```
 
-### menu
+### menu / --interactive
 
-Launch the interactive menu-driven interface. This is the default command when no arguments are provided.
+Launch the interactive menu-driven interface. The `--interactive` flag provides explicit separation between interactive and CLI operation modes.
 
 ```bash
-sudo ./apotropaios.sh menu
-sudo ./apotropaios.sh              # Same — menu is the default
+sudo ./apotropaios.sh --interactive            # Preferred — explicit interactive mode
+sudo ./apotropaios.sh --interactive --backend iptables  # Pre-select backend
+sudo ./apotropaios.sh menu                     # Backward compatible subcommand
+sudo ./apotropaios.sh                          # Backward compatible (no args)
 ```
 
-The menu provides seven categories: Firewall Management, Rule Management, Quick Actions, Backup & Recovery, System Information, Install & Update, and Help & Documentation.
+The `--interactive` flag is mutually exclusive with CLI commands and `--non-interactive`. The menu provides seven categories: Firewall Management, Rule Management, Quick Actions, Backup & Recovery, System Information, Install & Update, and Help & Documentation.
 
 <p align="right">(<a href="#table-of-contents">back to top</a>)</p>
 
@@ -542,9 +547,10 @@ These options are available on all commands:
 
 | Option | Description |
 |--------|-------------|
+| `--interactive` | Launch the interactive menu-driven interface (mutually exclusive with commands and `--non-interactive`) |
 | `--backend <NAME>` | Select firewall backend: iptables, nftables, firewalld, ufw, ipset |
 | `--log-level <LEVEL>` | Set log verbosity: trace, debug, info, warning, error, critical |
-| `--non-interactive` | Suppress interactive prompts (for scripting) |
+| `--non-interactive` | Suppress interactive prompts (for scripting/automation; mutually exclusive with `--interactive`) |
 | `-v, --version` | Show version string and exit |
 | `-h, --help` | Show context-sensitive help (global or per-command) |
 
@@ -636,9 +642,9 @@ The framework provides three levels of configuration protection:
 3. **Immutable snapshots**: `chattr +i` protected files that cannot be modified or deleted without explicit unlock
 
 ```bash
-sudo ./apotropaios.sh backup pre-deploy        # Create labeled backup
-sudo ./apotropaios.sh backup                   # Create timestamped backup
-sudo ./apotropaios.sh restore                  # Restore from latest
+sudo ./apotropaios.sh backup pre-deploy     # Create labeled backup
+sudo ./apotropaios.sh backup                # Create timestamped backup
+sudo ./apotropaios.sh restore               # Restore from latest
 sudo ./apotropaios.sh restore specific.tar.gz  # Restore from specific backup
 ```
 
@@ -720,13 +726,13 @@ apotropaios/                          # Repository root
 │   ├── install/
 │   │   └── installer.sh              #   Package installation across pkg managers
 │   └── menu/                         # Layer 5: User Interface (2 modules)
-│       ├── menu_main.sh              #   7-category interactive menu + rule wizard
+│       ├── menu_main.sh              #   7-category menu, wizard, expiry monitor
 │       └── help_system.sh            #   17 per-command help pages
-├── tests/                            # BATS test suite (375 tests, 13 files)
+├── tests/                            # BATS test suite (380 tests, 13 files)
 │   ├── helpers/test_helper.bash      #   Shared setup/teardown
 │   ├── fixtures/                     #   Test data (sample rules, invalid configs)
 │   ├── unit/                         #   234 tests across 8 files
-│   ├── integration/                  #   93 tests across 4 files
+│   ├── integration/                  #   98 tests across 4 files
 │   └── security/                     #   48 CWE-mapped tests
 ├── .github/
 │   ├── workflows/ci.yml              #   6-stage CI: lint, security, tests, 5-distro matrix
@@ -814,10 +820,10 @@ sudo ./apotropaios.sh detect            # Test with detect command
 
 ### "Invalid option" in the interactive menu
 
-Ensure you are running version 1.1.5 or later. Earlier versions had a sanitization bug (BUG-010) that caused all menu input to be rejected:
+Ensure you are running version 1.1.10 or later. Earlier versions had a sanitization bug (BUG-010) that caused all menu input to be rejected:
 
 ```bash
-sudo ./apotropaios.sh --version         # Should show v1.1.5+
+sudo ./apotropaios.sh --version         # Should show v1.1.10+
 ```
 
 ### "Root privileges required"
@@ -857,7 +863,7 @@ Check directory permissions and disk space:
 
 ```bash
 ls -la data/logs/                       # Check permissions
-df -h                                   # Check disk space
+df -h                                    # Check disk space
 sudo ./apotropaios.sh --log-level trace detect  # Maximum diagnostic detail
 ```
 
@@ -869,7 +875,7 @@ For additional troubleshooting scenarios, see the [Wiki Troubleshooting Guide](d
 
 ## Testing
 
-The project includes a comprehensive test suite built on [BATS](https://github.com/bats-core/bats-core) (Bash Automated Testing System) with 375 tests covering validation, security, lifecycle, CLI, help system, and backup operations.
+The project includes a comprehensive test suite built on [BATS](https://github.com/bats-core/bats-core) (Bash Automated Testing System) with 380 tests covering validation, security, lifecycle, CLI, help system, and backup operations.
 
 ```bash
 # Run the full test suite (lint + all tests)
@@ -927,7 +933,7 @@ Contributions are welcome and appreciated. To contribute:
 
 ### Guidelines
 
-- Run `make test` before submitting — all 375 tests must pass
+- Run `make test` before submitting — all 380 tests must pass
 - Run `make lint` — ShellCheck must report no warnings
 - Run `make security-scan` — no new warnings introduced
 - Follow the existing code style: comprehensive function documentation headers (Synopsis, Description, Parameters, Returns), inline comments explaining non-obvious logic, and consistent formatting
@@ -967,7 +973,12 @@ For the complete development guide including environment setup, test architectur
 
 | Version | Date | Changes |
 |---------|------|---------|
-| **1.1.5** | 2026-03-27 | Security audit: 10 findings resolved (compound removal, flock locking, whitelist sanitization, log masking expansion, nft -f removal, eval elimination). 375 tests. |
+| **1.1.10** | 2026-03-29 | Background expiry monitor (30s interval, auto-deactivation). Proactive terminal alerts at 10-minute mark. Inline expiry warnings on main menu. |
+| **1.1.9** | 2026-03-29 | Firewalld status shows all zones. Zone selector rewritten (nameref, no subshell hang). UFW port-less rule fix. Improved error logging across firewalld and ufw. |
+| **1.1.8** | 2026-03-28 | Firewalld full zone support (dynamic zone selection, all-zone reset, zone-aware config submenu). Iptables table selection in config submenu. |
+| **1.1.7** | 2026-03-28 | Bug fixes: immutable verify false positive, rule confirmation invisible, firewalld rich rule protocol, expired rules message. Rule wizard cancel support. |
+| **1.1.6** | 2026-03-28 | `--interactive` flag for explicit menu mode. ShellCheck compliance (7 fixes). CI Node.js 24 migration. Security scan refinement. Packaging expansion (dist-venv, release). 380 tests. |
+| **1.1.5** | 2026-03-27 | Security audit: 10 findings resolved (compound removal, flock locking, whitelist sanitization, log masking expansion, nft -f removal, eval elimination). |
 | **1.1.4** | 2026-03-25 | Critical startup fix (PATTERN_SHELL_META portability). Security test suite (48 CWE tests). CI/CD pipeline. Community files. |
 | **1.1.3** | 2026-03-24 | Compound actions (`log,drop`). Connection tracking. Rate limiting. Enhanced UFW config. CLI flags for all new options. |
 | **1.1.2** | 2026-03-24 | Crash fixes (menu options 4-8). Backend config submenus for ipset, iptables, nftables, firewalld, ufw. |
@@ -1050,7 +1061,7 @@ This software is intended for authorized systems administration, network securit
 sudo ./apotropaios.sh detect                        # System scan
 sudo ./apotropaios.sh --log-level trace detect      # Maximum diagnostic detail
 sudo ./apotropaios.sh --version                     # Check version
-bash --version                                      # Check bash version
+bash --version                                       # Check bash version
 ```
 
 <p align="right">(<a href="#table-of-contents">back to top</a>)</p>
