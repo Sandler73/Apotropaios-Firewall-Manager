@@ -59,14 +59,24 @@ sudo ./apotropaios.sh --backend nftables add-rule --dst-port 80 --action accept
 
 ## Interactive Menu Mode
 
-Launch with `sudo ./apotropaios.sh` or `sudo ./apotropaios.sh menu`.
+Launch the interactive menu using the `--interactive` flag:
+
+```bash
+sudo ./apotropaios.sh --interactive                     # Preferred — explicit interactive mode
+sudo ./apotropaios.sh --interactive --backend iptables  # Pre-select backend
+sudo ./apotropaios.sh --interactive --log-level trace   # Debug mode
+```
+
+**Backward compatibility:** `sudo ./apotropaios.sh menu` and `sudo ./apotropaios.sh` (no arguments) also launch the interactive menu.
+
+**Mutual exclusivity:** The `--interactive` flag cannot be combined with CLI commands (e.g., `--interactive add-rule` is an error) or `--non-interactive`.
 
 The main menu presents numbered options. Enter the number and press Enter.
 
 **Main Menu Options:**
 
 1. **Firewall Management** — Select and configure firewall backends. Start, stop, reload, reset firewalls. View current rules and status. Backend-specific configuration submenus.
-2. **Rule Management** — Create rules through a 5-step guided wizard. List, remove, activate, deactivate tracked rules. Import/export rule configurations. Rule expiry watcher.
+2. **Rule Management** — Create rules through a 5-step guided wizard with cancel support (type `q`, `quit`, `cancel`, or `back` at any prompt to abort without applying). List, remove, activate, deactivate tracked rules. Import/export rule configurations. Rule expiry watcher.
 3. **Quick Actions** — One-click block-all or allow-all traffic with automatic restore point creation.
 4. **Backup & Recovery** — Create timestamped backups, list available backups, restore from backup, manage immutable snapshots.
 5. **System Information** — View detected OS, installed firewalls, framework status, active log file.
@@ -379,13 +389,23 @@ sudo ./apotropaios.sh add-rule --protocol tcp --dst-port 8080 --action accept \
 
 TTL range: 60 seconds (1 minute) to 2,592,000 seconds (30 days).
 
+### Automatic Expiry Monitoring
+
+In interactive mode, a **background expiry monitor** runs every 30 seconds and automatically deactivates rules when their TTL expires — no manual intervention required. The monitor also writes proactive terminal alerts when a rule is within 10 minutes of expiring, showing the rule ID, description, and time remaining.
+
+Additionally, the **main menu displays inline warnings** for near-expiry and expired rules every time it renders, with guidance to extend timers via the Rule Expiry Watcher.
+
+In CLI mode, `rule_check_expired` runs once at startup. For ongoing CLI-only use, schedule periodic checks via cron: `*/5 * * * * /usr/local/bin/apotropaios check-expired 2>/dev/null`.
+
 ### Expiry Watcher
 
-The interactive menu includes a **Rule Expiry Watcher** (Rule Management > View rule expiry) that displays:
+The interactive menu includes a **Rule Expiry Watcher** (Rule Management > Rule expiry watcher) that displays:
 
-- Color-coded time remaining (green > 50%, yellow > 20%, red < 20%)
+- Color-coded time remaining (green > 30min, yellow < 30min, red < 10min)
+- `** EXPIRING SOON **` alert for rules within 10 minutes
+- `** EXPIRED **` for overdue rules
 - Option to extend TTL on expiring rules
-- Automatic cleanup of expired rules on framework startup
+- Option to process all expired rules immediately
 
 ---
 
@@ -395,15 +415,15 @@ Each firewall backend has a dedicated configuration submenu accessible via **Fir
 
 ### iptables (7 options)
 
-Check/view/save/restore iptables configuration, show table summary, view chain policies.
+Check/view/save/restore iptables configuration, show rules in a selected table (filter/nat/mangle/raw/security), show chain policies across all tables, view full ruleset for all tables.
 
 ### nftables (5 options)
 
 Check/view/save nftables configuration, list tables, list chains.
 
-### firewalld (6 options)
+### firewalld (8 options)
 
-Show default zone, list all zones, list active zones, list services, list rich rules, compare runtime vs permanent configuration.
+Show default zone, list all zones, list active zones, list services in a selected zone, show rich rules in a selected zone, show full zone configuration, compare runtime vs permanent configuration for a selected zone, change default zone. All zone-specific queries present a dynamic zone selection menu.
 
 ### ufw (9 options)
 
