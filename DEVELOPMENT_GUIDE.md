@@ -38,7 +38,7 @@ sudo dnf install ShellCheck        # RHEL family
 sudo pacman -S shellcheck          # Arch
 
 # Run the full test suite
-make test              # 375 tests: lint + unit + integration + security
+make test              # 380 tests: lint + unit + integration + security
 
 # Check all dependencies
 make check-deps
@@ -54,7 +54,7 @@ make metrics
 1. Create a feature branch from `develop`
 2. Make changes following the coding standards below
 3. Run `make lint` — fix all ShellCheck issues
-4. Run `make test` — all 375 tests must pass
+4. Run `make test` — all 380 tests must pass
 5. Add tests for new functionality (unit, integration, or security as appropriate)
 6. Update documentation: `docs/changelog.md`, `docs/wiki/Changelog.md`, help text, README if user-facing
 7. Update `tasks/sync_function.md` if module dependencies changed
@@ -169,7 +169,7 @@ tests/
 │   ├── sample_rules.conf      # 5 valid rules for import testing
 │   └── invalid_rules.conf     # 5 invalid entries for rejection testing
 ├── unit/                       # Pure function tests (234 tests, 8 files)
-├── integration/                # Multi-function flow tests (93 tests, 4 files)
+├── integration/                # Multi-function flow tests (98 tests, 4 files)
 └── security/                   # CWE-mapped security tests (48 tests, 1 file)
 ```
 
@@ -316,6 +316,22 @@ Never write user-influenced data to a file processed by `nft -f`. In file mode, 
 
 Never use `|| fallback` in security tests. If the function under test doesn't exist or fails to execute, the test must fail — not silently degrade to an untested code path.
 
+### Subshell Capture and /dev/tty Reads
+
+Never use `result="$(func_that_reads_tty)"` — the `$()` creates a subshell where `read -r var </dev/tty` has I/O issues (prompt may not display, read may hang indefinitely). Use **nameref** parameters instead: `func_that_reads_tty result_var "label"` with `local -n _ref="$1"` inside the function.
+
+### Confirmation Prompts in Menu Context
+
+`util_confirm()` writes its prompt to stderr. In the interactive menu, all wizard prompts write to stdout. If confirmation is mixed in, the stderr prompt is invisible — the user sees a hang. Use `_wizard_read` or direct stdout `printf` for all prompts within the wizard flow.
+
+### Port-less Rules Require Extended Syntax
+
+Both firewalld and ufw have "simple" rule paths that require a port. When no destination port is specified, always force the rich rule (firewalld) or extended syntax (ufw) path. Without this guard, the rule builder produces structurally invalid commands that the backend rejects.
+
+### Firewalld Protocol Element
+
+Firewalld rich rules require at least one filtering element between the family declaration and the action. When no port is specified, add `protocol value="tcp"` (or udp/sctp). Without this, the rule `rule family="ipv4" accept` is rejected as structurally invalid.
+
 ---
 
 ## Adding a New Firewall Backend
@@ -355,7 +371,7 @@ Never use `|| fallback` in security tests. If the function under test doesn't ex
 
 ```bash
 make help              # Full target listing with descriptions
-make test              # Full suite: lint + unit + integration + security (375 tests)
+make test              # Full suite: lint + unit + integration + security (380 tests)
 make test-quick        # Unit only (fast feedback)
 make test-report       # Detailed per-file pass/fail counts
 make test-count        # Quick count without execution
