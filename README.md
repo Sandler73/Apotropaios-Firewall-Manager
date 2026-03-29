@@ -1,14 +1,8 @@
 <a id="top"></a>
 
-<div align="center">
-<pre>
-    _    ____   ___ _____ ____   ___  ____   _    ___ ___  ____
-   / \  |  _ \ / _ \_   _|  _ \ / _ \|  _ \ / \  |_ _/ _ \/ ___|
-  / _ \ | |_) | | | || | | |_) | | | | |_) / _ \  | | | | \___ \
- / ___ \|  __/| |_| || | |  _ &lt;| |_| |  __/ ___ \ | | |_| |___) |
-/_/   \_\_|    \___/ |_| |_| \_\\___/|_| /_/   \_\___\___/|____/
-</pre>
-</div>
+<p align="center">
+  <img src="assets/images/header-apotropaios.png" alt="Apotropaios Firewall Manager" width="50%" />
+</p>
 
 <h1 align="center">Apotropaios — Firewall Manager</h1>
 <p align="center">
