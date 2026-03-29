@@ -28,7 +28,7 @@ Apotropaios follows a strict layered architecture. Each layer depends only on la
 ┌─────────────────────────────────────────────┐
 │             apotropaios.sh                  │  Entry point, CLI parsing
 ├─────────────────────────────────────────────┤
-│   lib/menu/menu_main.sh                     │  Interactive menu UI
+│   lib/menu/menu_main.sh                     │  Interactive menu, wizard, expiry monitor
 │   lib/menu/help_system.sh                   │  Progressive help (17 pages)
 ├─────────────────────────────────────────────┤
 │   lib/rules/      lib/backup/               │  Rule engine, backup/restore
@@ -281,9 +281,9 @@ Each backend implements the standard interface. Key per-backend details:
 
 **nftables.sh (14 functions):** Compound actions combined in single nft expression (e.g., `log prefix "..." drop`). Supports `ct state`, `limit rate`. Table family validated via `validate_table_family()`. Direct command execution only — no `nft -f` file mode (removed as injection vector).
 
-**firewalld.sh (13 functions):** Rich rule builder (`_firewalld_build_rich_rule`) with 12 parameters including log clause, compound actions, and rate limits. Auto-selects rich rule vs simple port add.
+**firewalld.sh (13 functions):** Rich rule builder (`_firewalld_build_rich_rule`) with 12 parameters including log clause, compound actions, protocol-only rules, and rate limits. Auto-selects rich rule vs simple port add (rich rule forced for port-less rules). Status shows all zones via `--list-all-zones`. Reset iterates all zones. Error logging captures actual `firewall-cmd` stderr.
 
-**ufw.sh (12 functions):** Compound action extracts terminal for ufw verb, enables logging separately. Extended syntax auto-detection for source/destination rules. Backend config: 9 options including app profile enable/disable, logging level control, default policy management.
+**ufw.sh (12 functions):** Compound action extracts terminal for ufw verb, enables logging separately. Extended syntax auto-detection for source/destination rules; also forced when no port specified (simple path requires a port). Error logging captures actual `ufw` stderr. Backend config: 9 options including app profile enable/disable, logging level control, default policy management.
 
 **ipset.sh (14 functions):** Set creation/management plus iptables integration rules. Supports hash:ip, hash:net, hash:ip,port set types.
 
@@ -323,7 +323,7 @@ Each backend implements the standard interface. Key per-backend details:
 
 ### lib/backup/{backup,restore,immutable}.sh — 13 functions
 
-**Purpose:** Timestamped compressed archives, automatic restore points, `chattr +i` immutable snapshots.
+**Purpose:** Timestamped compressed archives, automatic restore points, `chattr +i` immutable snapshots. Verify returns 3 codes: 0 (all pass), 1 (integrity failure), 2 (no snapshots exist). List handles empty state.
 
 ### lib/install/installer.sh — 7 functions
 
@@ -333,19 +333,24 @@ Each backend implements the standard interface. Key per-backend details:
 
 ## Module Reference — Menu and Help (Layer 5)
 
-### lib/menu/menu_main.sh — 25 functions
+### lib/menu/menu_main.sh — 31 functions
 
-**Purpose:** Interactive menu-driven interface with guided wizards.
+**Purpose:** Interactive menu-driven interface with guided wizards, background expiry monitoring, and cancel-safe input handling.
 
 Key internal functions:
-- `_menu_create_rule()` — 5-step rule creation wizard with compound action, connection state, log options, rate limit prompts
+- `_wizard_read(var, default)` — Cancel-aware input helper (nameref). Detects q/quit/cancel/back/b. Used by all 29 wizard prompts across all 5 backends.
+- `_menu_create_rule()` — 5-step rule creation wizard with compound action, connection state, log options, rate limit prompts. Full cancel support.
 - `_menu_remove_rule()`, `_menu_activate_rule()`, `_menu_deactivate_rule()` — UUID validation before engine calls
 - `_menu_import_rules()` — File scanner + validation
 - `_menu_export_rules()` — Default path, overwrite protection
 - `_menu_list_system_rules()` — Multi-backend audit
 - `_menu_rule_watcher()` — Color-coded TTL display with extension
+- `_expiry_monitor_loop()` — Background daemon (30s interval). Auto-deactivates expired rules, writes terminal alerts at 10-minute mark.
+- `_expiry_monitor_start()` / `_expiry_monitor_stop()` — Lifecycle management with double-start guard and cleanup stack registration.
+- `_menu_check_expiry_alerts()` — Inline expiry warnings on every main menu render.
+- `_firewalld_select_zone(var, label)` — Reusable zone picker (nameref, no subshell). Dynamic list from `firewall-cmd --get-zones` with cancel support.
 - `_menu_backend_config()` — Dispatch to per-backend config menus
-- `_menu_backend_config_{iptables,nftables,firewalld,ufw,ipset}()` — Backend-specific submenus
+- `_menu_backend_config_{iptables,nftables,firewalld,ufw,ipset}()` — Backend-specific submenus (firewalld: 8 options zone-aware, iptables: 7 options with table selector)
 
 ### lib/menu/help_system.sh — 23 functions
 
@@ -374,10 +379,11 @@ Key internal functions:
 **Flow:**
 1. Determine script location (`APOTROPAIOS_BASE_DIR`)
 2. Source all 24 library modules in dependency order
-3. Parse global options (`--backend`, `--log-level`, `--help`, `--version`)
-4. Check for per-command `--help` (bypass initialization)
-5. Call `_initialize()` — logging, security, detection, rule index, backup
-6. Dispatch to command handler or interactive menu
+3. Parse global options (`--backend`, `--log-level`, `--interactive`, `--non-interactive`, `--help`, `--version`)
+4. Validate mutual exclusivity (`--interactive` vs `--non-interactive`, `--interactive` vs CLI commands)
+5. Check for per-command `--help` (bypass initialization)
+6. Call `_initialize()` — logging, security, detection, rule index, backup, expiry check
+7. Dispatch to command handler or interactive menu (with background expiry monitor)
 
 **CLI flags added in v1.1.3:** `--conn-state`, `--log-prefix`, `--log-level`, `--limit`, `--limit-burst`
 
@@ -475,10 +481,10 @@ tests/
 │   ├── errors.bats (24)
 │   ├── rule_engine.bats (19)
 │   └── backup.bats (14)
-├── integration/                # Multi-function flow tests (93 tests)
+├── integration/                # Multi-function flow tests (98 tests)
 │   ├── lifecycle.bats (22)
 │   ├── import_export.bats (10)
-│   ├── cli.bats (29)
+│   ├── cli.bats (34)
 │   └── help_system.bats (32)
 ├── security/                   # CWE-mapped security tests (48 tests)
 │   └── injection.bats (48)
@@ -487,7 +493,7 @@ tests/
     └── invalid_rules.conf
 ```
 
-**Total: 375 tests across 13 files**
+**Total: 380 tests across 13 files**
 
 ### Critical Test Patterns
 
