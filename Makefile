@@ -11,7 +11,7 @@
 #               - TAP output written to test-results/ for CI artifact upload
 #               - Security targets require no external tools beyond ShellCheck
 #
-# Version:     1.1.5
+# Version:     1.1.10
 # ==============================================================================
 
 SHELL := /bin/bash
@@ -838,7 +838,7 @@ help:
 	@echo "    make test-backup         Backup module (14 tests)"
 	@echo "    make test-lifecycle      Integration lifecycle (22 tests)"
 	@echo "    make test-import-export  Import/export round-trip (10 tests)"
-	@echo "    make test-cli            CLI arguments and commands (29 tests)"
+	@echo "    make test-cli            CLI arguments and commands (34 tests)"
 	@echo "    make test-help-system    Progressive help system (32 tests)"
 	@echo "    make test-sec-injection  CWE injection prevention (48 tests)"
 	@echo ""
