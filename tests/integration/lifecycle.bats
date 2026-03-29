@@ -464,7 +464,7 @@ load '../helpers/test_helper'
     run bash "${PROJECT_ROOT}/apotropaios.sh" --version
     [ "$status" -eq 0 ]
     [[ "$output" == *"Apotropaios"* ]]
-    [[ "$output" == *"1.1.5"* ]]
+    [[ "$output" == *"1.1.10"* ]]
 }
 
 @test "parse_args: handles --help flag" {
