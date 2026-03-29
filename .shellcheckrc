@@ -3,7 +3,7 @@
 # Description: Project-wide ShellCheck directives with documented rationale.
 #              Per-file overrides can be added with inline # shellcheck directives.
 # Reference:   https://www.shellcheck.net/wiki/
-# Version:     1.1.5
+# Version:     1.1.10
 # ==============================================================================
 
 # Shell dialect — all modules target bash 4.0+
